@@ -1,0 +1,13 @@
+
+
+======================
+phases_num
+y_top				 \
+oil_over_water   |
+viscocity		  |
+penetrability	 /
+. \
+.  |  phases_num - 1
+. /
+
+======================

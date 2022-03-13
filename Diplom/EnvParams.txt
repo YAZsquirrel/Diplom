@@ -1,0 +1,28 @@
+
+4
+
+-100 100
+-100 100 
+-100	 0
+
+10 10 5
+
+===================
+un // test
+
+x1 x2		   \
+y1 y2		    | cube of environment
+z1 z2			/
+xh yh zh    -  steps   
+
+wells_num
+x y z
+h1 h2 - perforation height
+v		- perforation speed (+ = outtake (vsos))+
+r		- radius of concentration
+k		- concentration (0 - 1)
+. \
+.  | wells_num - 1
+. /
+
+===================

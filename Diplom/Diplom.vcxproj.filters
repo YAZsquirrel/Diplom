@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Исходные файлы\FEM">
+      <UniqueIdentifier>{05b6605c-3798-43f8-afb0-bfc7a3927fec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Filtration">
+      <UniqueIdentifier>{6c7fb631-891c-4d22-af92-b52fac36f3f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\FEM">
+      <UniqueIdentifier>{c884172d-f584-4466-8d9f-6d619f7c927d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Filtration">
+      <UniqueIdentifier>{90da5d50-4375-45fb-ade4-f13fdaddf419}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Grid">
+      <UniqueIdentifier>{9b4846f4-9722-4dd3-a0a7-f50dfc261e63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Grid">
+      <UniqueIdentifier>{5ef74508-f8b9-4539-bd5e-de6ce9107ff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Initial Data">
+      <UniqueIdentifier>{156ac48b-5c33-44ec-bd0d-9aa27d888073}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Transitional data">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="FEM.cpp">
+      <Filter>Исходные файлы\FEM</Filter>
+    </ClCompile>
+    <ClCompile Include="FEMfuncs.cpp">
+      <Filter>Исходные файлы\FEM</Filter>
+    </ClCompile>
+    <ClCompile Include="Filtration.cpp">
+      <Filter>Исходные файлы\Filtration</Filter>
+    </ClCompile>
+    <ClCompile Include="GridMaker.cpp">
+      <Filter>Исходные файлы\Grid</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Filtration.h">
+      <Filter>Файлы заголовков\Filtration</Filter>
+    </ClInclude>
+    <ClInclude Include="FEM.h">
+      <Filter>Файлы заголовков\FEM</Filter>
+    </ClInclude>
+    <ClInclude Include="GridMaker.h">
+      <Filter>Файлы заголовков\Grid</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="FirstBounds.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="Knots.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="Rectangles.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="Result.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="SecondBounds.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="FiltrParams.txt">
+      <Filter>Initial Data</Filter>
+    </Text>
+    <Text Include="EnvParams.txt">
+      <Filter>Initial Data</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
