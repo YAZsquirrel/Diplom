@@ -1,28 +1,30 @@
 #pragma once
-//#include "Filtration.h"
+#include "Filtration.h"
+#include <cmath>
 #include <iostream>
 #include <functional>
 #include <list>
 #include "GridMaker.h"
 typedef double real;
-//using namespace filtration;
+
+using namespace filtration;
 using namespace mesh_comps;
 
 class FEM
 {
    private:
 
-   struct bound1 {
-      face* bound_face;
+   struct bound {
+      int knots_num[4];
       real value;
    };
-   std::list<bound1*> bounds1;
+   std::list<bound*> bounds1;
    
-   struct bound2 {
-      face* bound_face;
-      real value; // theta
-   };
-   std::list<bound2*> bounds2;
+   //struct bound2 {
+   //   face* bound_face;
+   //   real value; // theta
+   //};
+   std::list<bound*> bounds2;
 
    struct Matrix {
       real *l, *u, *d;
@@ -35,6 +37,7 @@ class FEM
    //real gamma = 1, theta = 1, lambda = 1;
    int num_of_knots, num_of_FE, un;
 
+   real localM2d[4][4];
    real localM[8][8]; // 8*8
    real localG[8][8];
    real localA[8][8];
@@ -45,6 +48,7 @@ class FEM
    real Jgrad_j[3];
    real gradj[3];
 
+   void WriteMatrix(Matrix* A);
    void MakeSparseFormat();
    void AddElement(Matrix *A, int knot_num[8], int i, int j, real elem);
    void AddLocal(Matrix* A, int knot_num[8], real localA[8][8], real coeff);
@@ -55,8 +59,6 @@ class FEM
    void CreateM(hexahedron *hexa); // можно посылать параметр, на кот. умножается матрица
    void CreateG(hexahedron *hexa); // лямбду надо при формировании
    void Createb(hexahedron* hexa);
-   //real diffnorm(real *q);
-   //real norm(real* b);
 
    Matrix *A;
    real *b, *qk, *temp, *t;
@@ -65,9 +67,12 @@ class FEM
    real scalar(real* v, real* u, int size);
    void MatxVec(real* v, Matrix* A, real* b);
    real* z, *r, *p, *ff, *x;
+   Filtration* filtr;
+   Mesh* mesh;
    void SolveSLAE();
 
    real Integrate(const std::function<real(real, real, real, int, int, int[8])> f, int i, int j, int knot_num[8]);
+   real Integrate2D(const std::function<real(real, real, int, int, int[4])> f, int i, int j, int knot_num[4]);
    inline int mu(int index);
    inline int v(int index);
    inline int nu(int index);
@@ -83,7 +88,7 @@ class FEM
 
    public:
    FEM();
-   //void SolveHyperbolic();
    void SolveElliptic();
+   void GetSolutionOnPlane(real z);
    void Output(std::ofstream &out);
 };
