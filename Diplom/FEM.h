@@ -31,10 +31,8 @@ class FEM
       int *ig, *jg;
    };
    hexahedron* hexas;
-   //real lambda(real knot[2], real t);
    real f(knot *knot_);
    real ug(knot *knot_);
-   //real gamma = 1, theta = 1, lambda = 1;
    int num_of_knots, num_of_FE, un;
 
    real localM2d[4][4];
@@ -54,7 +52,7 @@ class FEM
    void AddLocal(Matrix* A, int knot_num[8], real localA[8][8], real coeff);
    void AddFirstBounds();
    void AddSecondBounds(/*hexahedron* hexa*/);
-   void CreateA(hexahedron* hexa);
+   void AddToA(hexahedron* hexa);
    void CreateSLAE();
    void CreateM(hexahedron *hexa); // можно посылать параметр, на кот. умножается матрица
    void CreateG(hexahedron *hexa); // лямбду надо при формировании
@@ -84,9 +82,11 @@ class FEM
    void calc_grad(int ij, int index, real ksi, real etta, real tetha);
    std::function<real(real, real, real, int, int, int[8])> Gij;
    std::function<real(real, real, real, int, int, int[8])> Mij;
+   std::function<real(real, real,  int, int, int[4])> M2Dij;
 
 
    public:
+   int GetKnotNum() { return mesh->knots.size(); };
    FEM();
    void SolveElliptic();
    void GetSolutionOnPlane(real z);

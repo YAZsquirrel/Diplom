@@ -8,6 +8,7 @@ FEM::FEM()
    filtr = new Filtration();
    filtr->Start();
    mesh = filtr->mesh;
+   //mesh = new Mesh();
 
    std::ifstream fknots("Knots.txt");
    std::ifstream fhexas("Hexahedrons.txt");
@@ -45,7 +46,7 @@ FEM::FEM()
       }
       for (int k = 0; k < 8; k++)
       {
-
+      
          //real lam;
          int minp = -1;
          real ph = 1e10;
@@ -60,6 +61,7 @@ FEM::FEM()
          }
          hexa->lam = filtr->por.K * filtr->phases[minp].penetrability / filtr->phases[minp].viscosity;
       }
+      //hexa->lam = 1.0;
    }
    fhexas.close();
 
@@ -68,12 +70,10 @@ FEM::FEM()
    for (int i = 0; i < numOfBounds; i++)
    {
       bound* cond = new bound;
-      //   fbounds1 >> cond->bound_param;
       for (int j = 0, number; j < 4; j++)
       {
          fbounds1 >> number;								
          cond->knots_num[j] = number;				
-         //cond->knots[i] = &knots[number - 1];	
       }
       fbounds1 >> cond->value;
       bounds1.push_back(cond);
@@ -158,7 +158,6 @@ FEM::FEM()
       real res = 0;
       for (int ip = 0; ip < 3; ip++)
          res += Jgrad_i[ip] * Jgrad_j[ip];
-     
       return res / det_J();
    };
 
@@ -321,28 +320,21 @@ void FEM::SolveElliptic()
    SolveSLAE();
    Output(out);
    out.close();
-
-   //real* check = new real[num_of_knots];
-   ////real* check1 = new real[num_of_knots];
-   ////for (int i = 0; i < num_of_knots; i++)
-   ////   check1[i] = 1.0;
-   //MatxVec(check, A, q);
-   //for (int i = 0; i < num_of_knots; i++)
-   //   std::cout << b[i] << " ";
-   //std::cout << '\n';
 }
 
 void FEM::GetSolutionOnPlane(real z)
 {
    std::ofstream zout("ResultZ.txt");
 
-   for (int i = 0; i < num_of_knots; i++)
+   for (int i = 0; i < num_of_knots - 1; i++)
    {
-      if (abs(mesh->knots[i]->z - z) < 1e-10)
+      if (mesh->knots[i]->z >= z && mesh->knots[i + 1]->z <= z)
          zout << mesh->knots[i]->x << " " 
                << mesh->knots[i]->y << " "
                //<< mesh->knots[i]->z << " "
-               << q[i] / 101325.0 << '\n';
+               << q[i + 1] * (1. - (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)) +
+                  q[i]     *       (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)
+               / 101325.0 << '\n';
    }
 
 }
@@ -399,7 +391,7 @@ void FEM::AddFirstBounds()
             if (A->jg[j] == cond->knots_num[i])
                A->u[j] = 0.;
       
-         b[cond->knots_num[i]] = cond->value;// = ug(mesh->knots[cond->knots_num[i]]);  /// надо будет поменять, наверно, для неизвестных функций из таблицы/по функции
+         b[cond->knots_num[i]] = cond->value;// ug(mesh->knots[cond->knots_num[i]]);  /// надо будет поменять, наверно, для неизвестных функций из таблицы/по функции
       }
    }
 }
@@ -452,17 +444,16 @@ void FEM::CreateSLAE()
       hexa = mesh->hexas[i];
       CreateG(hexa);
       CreateM(hexa);
-      CreateA(hexa);
+      AddToA(hexa);
       Createb(hexa);
    }
 
    AddSecondBounds();
-   //for (int i =0 ; i < num_of_knots; i++) std::cout << b[i] << "\n";
    AddFirstBounds();
    //WriteMatrix(A);
 }
 
-void FEM::CreateA(hexahedron* hexa)
+void FEM::AddToA(hexahedron* hexa)
 {
    for (int i = 0; i < 8; i++ )
       for (int j = 0; j < 8; j++ )
@@ -623,6 +614,7 @@ real FEM::prime_by_var(int varOnCube, int varOnFE, int knot_num[8], real ksi, re
    }
    return var;
 }
+
 
 real FEM::phi(int index, real ksi, real etta, real tetha)
 {

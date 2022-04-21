@@ -158,8 +158,8 @@ namespace mesh_comps
 
                   knots.push_back(new knot(xiw * w->radius + w->x, yiw * w->radius + w->y, z));
 
-                  real length = sqrt((xiw * w->radius + w->x - knots[sorted_inds->at(iw)]->x) * (xiw * w->radius + w->x - knots[sorted_inds->at(iw)]->x)
-                                   + (yiw * w->radius + w->y - knots[sorted_inds->at(iw)]->y) * (yiw * w->radius + w->y - knots[sorted_inds->at(iw)]->y));
+                  real length = sqrt(pow(xiw * w->radius + w->x - knots[sorted_inds->at(iw)]->x, 2)
+                                   + pow(yiw * w->radius + w->y - knots[sorted_inds->at(iw)]->y, 2));
                   real stepr = length / w_info.rad_knots;
 
                   //for (float r = stepr, j = 1; j < num_of_knots_on_rad; r += stepr, j++)
@@ -171,9 +171,7 @@ namespace mesh_comps
                      else r *= w_info.conc;
                   }
                }
-               
             }
-
          }
          else
             for (int i = 0; i < plane_size; i++)

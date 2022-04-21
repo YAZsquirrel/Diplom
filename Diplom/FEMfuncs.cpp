@@ -35,7 +35,7 @@ real FEM::ug(knot *point)
 	{
 	case 1: return 1;
 	case 2: return x + y + z; 
-	case 3: return z;
+	case 3: return x;
 	case 4: return x * x + y * y;
 	case 5: return x * x + y * y; // x^3 + y^3 + xy + 1
 	case 6: return x * x + y * y;

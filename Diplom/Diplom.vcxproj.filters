@@ -34,6 +34,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Additonal Data">
+      <UniqueIdentifier>{53559942-cc0b-4de0-a5e1-a8bebffbabe0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -84,6 +87,12 @@
     </Text>
     <Text Include="EnvParams.txt">
       <Filter>Initial Data</Filter>
+    </Text>
+    <Text Include="Hexahedrons.txt">
+      <Filter>Transitional data</Filter>
+    </Text>
+    <Text Include="matrix.txt">
+      <Filter>Additonal Data</Filter>
     </Text>
   </ItemGroup>
 </Project>

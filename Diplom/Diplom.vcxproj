@@ -153,8 +153,10 @@
   <ItemGroup>
     <Text Include="EnvParams.txt" />
     <Text Include="FirstBounds.txt" />
+    <Text Include="Hexahedrons.txt" />
     <Text Include="Knots.txt" />
     <Text Include="FiltrParams.txt" />
+    <Text Include="matrix.txt" />
     <Text Include="Rectangles.txt" />
     <Text Include="Result.txt" />
     <Text Include="SecondBounds.txt" />
