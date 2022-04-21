@@ -328,13 +328,16 @@ void FEM::GetSolutionOnPlane(real z)
 
    for (int i = 0; i < num_of_knots - 1; i++)
    {
-      if (mesh->knots[i]->z >= z && mesh->knots[i + 1]->z <= z)
+      //if (mesh->knots[i]->z <= z + 1e-13 && mesh->knots[i + 1]->z >= z + 1e-13)
+      if (abs(mesh->knots[i]->z - z) <= 1e-12)
+      {
          zout << mesh->knots[i]->x << " " 
                << mesh->knots[i]->y << " "
                //<< mesh->knots[i]->z << " "
-               << q[i + 1] * (1. - (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)) +
-                  q[i]     *       (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)
-               / 101325.0 << '\n';
+               //<< q[i] * (1. - (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)) +
+               //   q[i + 1]     *       (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)
+               << q[i] 
+               / 101325.0 << '\n';}
    }
 
 }
