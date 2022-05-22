@@ -143,12 +143,16 @@
     <ClCompile Include="FEMfuncs.cpp" />
     <ClCompile Include="Filtration.cpp" />
     <ClCompile Include="GridMaker.cpp" />
+    <ClCompile Include="Mat_structs.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Streams.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FEM.h" />
+    <ClInclude Include="Mat_structs.h" />
     <ClInclude Include="Filtration.h" />
     <ClInclude Include="GridMaker.h" />
+    <ClInclude Include="Streams.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="EnvParams.txt" />
@@ -157,8 +161,8 @@
     <Text Include="Knots.txt" />
     <Text Include="FiltrParams.txt" />
     <Text Include="matrix.txt" />
-    <Text Include="Rectangles.txt" />
     <Text Include="Result.txt" />
+    <Text Include="ResultZ.txt" />
     <Text Include="SecondBounds.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

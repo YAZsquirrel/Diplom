@@ -1,13 +1,14 @@
-0
+1000
 5e-10 0.4
 
 2
-0
-1
 
 2
-100 1.0 0.050 0.01
-40  0.0 0.001 0.1
+10 1.0 0.050 0.01
+0 1
+4  0.0 0.001 0.1
+1 0
+
 
 
 ======================
@@ -16,23 +17,17 @@ P_plast - I bound
 K - structural penetrability - Darsi (mD = metere^2 * 1e-12)		\
 Fi - porosity [0..1]																/ для будущего: разные породы могут быть, потому: pn - кол-во пород + h - высота начала/конца породы
 
-comps_num
-k			
-. \
-.  | comps_num 
-. /
+comps_num    | L - колво компонент
 
-k = 0 - oil, 1 - water, //2 - gas//
+k = 0 - oil, 1 - water
 
 phases_num
 y_top				 \
-oil_over_water   |
 viscocity		  |
 penetrability	  |
-n_comps			  |
-k					  | 
-.\	n_comps		  |
-./					 /
+khi1 \			  |
+khi2  | comps_num|
+...  /			 /
 
 . \
 .  |  phases_num - 1

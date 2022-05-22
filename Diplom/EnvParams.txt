@@ -1,4 +1,3 @@
-
 3
 
 0 0 0
@@ -7,14 +6,14 @@
 
 1
 
-5.1 5.1 
+5.1 5.1
 6.1 5.1
--1000
+1
 0.5
 
-1.9
+2.3
 2
-1
+1.5
 
 ===================
 un // test
@@ -31,8 +30,9 @@ rad	- well radius
 . \
 .  | wells_num - 1
 . /
+
 r		- radius of concentration
-n		- num of knots on radius
-k		- concentration (0 - 1)
+n		- num of knots on radius (>0)
+k		- concentration (>=1)//(0 - 1)
 
 ===================
