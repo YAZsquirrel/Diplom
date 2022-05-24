@@ -6,7 +6,7 @@ using namespace mesh_comps;
 namespace mats{
 
    struct Matrix {
-      real* l, * u, * d;
+      real* l, * u, * di;
       int* ig, * jg;
       size_t dim;
    };

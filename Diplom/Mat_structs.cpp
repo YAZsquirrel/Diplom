@@ -91,7 +91,7 @@ namespace mats
 
       M->l = new real[listsize + 1]{};
       M->u = new real[listsize + 1]{};
-      M->d = new real[elemsize]{};
+      M->di = new real[elemsize]{};
       return M;
 
    }
@@ -100,7 +100,7 @@ namespace mats
    {
       bool found = false;
       if (i == j)
-         M->d[i] += elem;
+         M->di[i] += elem;
       else if (i < j)
       {
          int m;
@@ -122,7 +122,7 @@ namespace mats
    void MatxVec(std::vector<real> &v, Matrix* M, std::vector<real> &b) // v = M*b
    {
       for (int i = 0; i < M->dim; i++)
-         v[i] = M->d[i] * b[i];
+         v[i] = M->di[i] * b[i];
 
       for (int i = 0; i < M->dim; i++)
          for (int j = M->ig[i]; j < M->ig[i + 1]; j++) // -1?
@@ -148,12 +148,16 @@ namespace mats
 
    void SolveSLAE(Matrix* M, std::vector<real> &q, std::vector<real> &b)
    {
-      std::vector<real> z, r, p, ff, x;
+      std::vector<real> z, r, p, ff, &x = q;
+      z.resize(M->dim);
+      r.resize(M->dim);
+      p.resize(M->dim);
+      ff.resize(M->dim);
 
       
       real res, alpha, beta, skp, eps = 1e-17;
       int i, k;
-      x = q;
+      //x = q;
       
       real lastres;
       MatxVec(ff, M, x);

@@ -49,7 +49,7 @@ namespace filtr {
 
 		str = new streams::Streams(mesh, fem->GetKnots());
 		str->FindStreams();
-
+		str->CheckStreams();
 	}
 	void Filtration::SetDiffKoef()
 	{

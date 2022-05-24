@@ -238,7 +238,7 @@ void FEM::AddFirstBounds()
    {
       for (int i = 0; i < 4; i++)
       {
-         A->d[cond->knots_num[i]] = 1e10;
+         A->di[cond->knots_num[i]] = 1e10;
          //for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
          //   A->l[j] = 0.;
          //for (int j = 0; j < A->ig[num_of_knots]; j++)
@@ -554,7 +554,7 @@ void FEM::WriteMatrix(Matrix* A)
 
    for (int i = 0; i < num_of_knots; i++)
    {
-      mat[i][i] = A->d[i];
+      mat[i][i] = A->di[i];
       for (int j = A->ig[i]; j < A->ig[i + 1]; j++)
       {
          mat[i][A->jg[j]] = A->l[j];

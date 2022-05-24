@@ -17,6 +17,7 @@ namespace streams
 			std::vector<real> Q;
 			Streams(mesh_comps::Mesh* mesh, std::vector<real> &P);
 			void FindStreams();
+			void CheckStreams();
 		private:
 			std::function<real(real, real, int, int, int, int)> G2Dij;
 			real Integrate2D(const std::function<real(real, real, int, int, int, int)> f, int face_num, int e, int xyz, int opposite);
@@ -30,6 +31,7 @@ namespace streams
 			void AssembleMatrix();
 			void AssembleRightPart();
 			bool CheckAccuracy(real eps);
+			
 
 			void FindAverageStreams();
 			void BalanceStreams();
