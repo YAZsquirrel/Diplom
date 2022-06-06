@@ -40,7 +40,6 @@ class FEM
    void calc_grad(int ij, int index, real ksi, real etta, real tetha);
 
    void check_test();
-   void WriteMatrix(Matrix* A);
    void AddFirstBounds();
    void AddSecondBounds();
    void AddToA(hexahedron* hexa);

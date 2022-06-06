@@ -185,6 +185,57 @@ namespace mats
          }
          res = sqrt(scalar(r, r)) / sqrt(scalar(b, b));
       }
-      std::cout << "iter: " << k << " Residual: " << res << std::endl;
+      //std::cout << "iter: " << k << " Residual: " << res << std::endl;
+   }
+
+   void WriteMatrix(Matrix* M)
+   {
+      double** mat = new double* [M->dim] {};
+      for (int i = 0; i < M->dim; i++)
+      {
+         mat[i] = new double[M->dim] {};
+      }
+
+      for (int i = 0; i < M->dim; i++)
+      {
+         mat[i][i] = M->di[i];
+         for (int j = M->ig[i]; j < M->ig[i + 1]; j++)
+         {
+            mat[i][M->jg[j]] = M->l[j];
+            mat[M->jg[j]][i] = M->u[j];
+         }
+      }
+
+      std::ofstream out("matrix.txt");
+
+      for (int i = 0; i < M->dim; i++)
+      {
+         for (int j = 0; j < M->dim; j++)
+         {
+            out.setf(std::ios::left);
+            out.width(15);
+            out << mat[i][j];
+         }
+         out << "\n";
+      }
+   }
+
+   void MatSymmetrisation(Matrix* M, std::vector<real>& b, int i)
+   {
+      for (int j = M->ig[i]; j < M->ig[i + 1]; j++)
+      {
+         b[M->jg[j]] -= b[i] * M->u[j];
+         M->u[j] = 0;
+      }
+
+      for (int iIG = 0; iIG < M->dim; iIG++)
+      {
+         for (int j = M->ig[iIG]; j < M->ig[iIG + 1]; j++)
+            if (M->jg[j] == i)
+            {
+               b[iIG] -= b[i] * M->l[j];
+               M->l[j] = 0;
+            }
+      }
    }
 }

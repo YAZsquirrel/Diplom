@@ -190,7 +190,7 @@ void FEM::GetSolutionOnPlane(real z)
                //   q[i + 1]     *       (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)
                << q[i] << '\n';}
    }
-
+   zout.close();
 }
 
 void FEM::Output(std::ofstream& out)
@@ -257,88 +257,86 @@ void FEM::AddSecondBounds()
 {  
    for (auto bound : mesh->bounds2)
    {
+      real a0, a1, a2;
+      real x[4], y[4];
+      real xn = mesh->faces[bound->face_num]->normal.x,
+           yn = mesh->faces[bound->face_num]->normal.y,
+           zn = mesh->faces[bound->face_num]->normal.z;
+      std::vector<real> planeNormal;
+      planeNormal.resize(3, 0.);
+      if (abs(xn) > abs(zn))
       {
-         real a0, a1, a2;
-         real x[4], y[4];
-         real x1 = mesh->knots[bound->knots_num[1]]->x - mesh->knots[bound->knots_num[0]]->x, 
-              y1 = mesh->knots[bound->knots_num[1]]->y - mesh->knots[bound->knots_num[0]]->y, 
-              z1 = mesh->knots[bound->knots_num[1]]->z - mesh->knots[bound->knots_num[0]]->z;
-         real x2 = mesh->knots[bound->knots_num[2]]->x - mesh->knots[bound->knots_num[0]]->x, 
-              y2 = mesh->knots[bound->knots_num[2]]->y - mesh->knots[bound->knots_num[0]]->y, 
-              z2 = mesh->knots[bound->knots_num[2]]->z - mesh->knots[bound->knots_num[0]]->z;
-         real xn = y1 * z2 - z1 * y2,
-              yn = z1 * x2 - x1 * z2,
-              zn = x1 * y2 - y1 * x2;
- 
-         if (abs(xn) > abs(zn))
+         if (abs(xn) > abs(yn)) // max = x
          {
-            if (abs(xn) > abs(yn)) // max = x
-            {
-               x[0] = mesh->knots[bound->knots_num[0]]->y;
-               x[1] = mesh->knots[bound->knots_num[1]]->y;
-               x[2] = mesh->knots[bound->knots_num[2]]->y;
-               x[3] = mesh->knots[bound->knots_num[3]]->y;
-               y[0] = mesh->knots[bound->knots_num[0]]->z;
-               y[1] = mesh->knots[bound->knots_num[1]]->z;
-               y[2] = mesh->knots[bound->knots_num[2]]->z;
-               y[3] = mesh->knots[bound->knots_num[3]]->z;
-            }
-            else // max = y
-            {
-               x[0] = mesh->knots[bound->knots_num[0]]->x;
-               x[1] = mesh->knots[bound->knots_num[1]]->x;
-               x[2] = mesh->knots[bound->knots_num[2]]->x;
-               x[3] = mesh->knots[bound->knots_num[3]]->x;
-               y[0] = mesh->knots[bound->knots_num[0]]->z;
-               y[1] = mesh->knots[bound->knots_num[1]]->z;
-               y[2] = mesh->knots[bound->knots_num[2]]->z;
-               y[3] = mesh->knots[bound->knots_num[3]]->z;
-            }
+            x[0] = mesh->knots[bound->knots_num[0]]->y;
+            x[1] = mesh->knots[bound->knots_num[1]]->y;
+            x[2] = mesh->knots[bound->knots_num[2]]->y;
+            x[3] = mesh->knots[bound->knots_num[3]]->y;
+            y[0] = mesh->knots[bound->knots_num[0]]->z;
+            y[1] = mesh->knots[bound->knots_num[1]]->z;
+            y[2] = mesh->knots[bound->knots_num[2]]->z;
+            y[3] = mesh->knots[bound->knots_num[3]]->z;
+            planeNormal[0] = 1.;
          }
-         else
+         else // max = y
          {
-            if (abs(zn) > abs(yn)) // max = z
-            {
-               x[0] = mesh->knots[bound->knots_num[0]]->x;
-               x[1] = mesh->knots[bound->knots_num[1]]->x;
-               x[2] = mesh->knots[bound->knots_num[2]]->x;
-               x[3] = mesh->knots[bound->knots_num[3]]->x;
-               y[0] = mesh->knots[bound->knots_num[0]]->y;
-               y[1] = mesh->knots[bound->knots_num[1]]->y;
-               y[2] = mesh->knots[bound->knots_num[2]]->y;
-               y[3] = mesh->knots[bound->knots_num[3]]->y;
-            }
-            else // max = y
-            {
-               x[0] = mesh->knots[bound->knots_num[0]]->x;
-               x[1] = mesh->knots[bound->knots_num[1]]->x;
-               x[2] = mesh->knots[bound->knots_num[2]]->x;
-               x[3] = mesh->knots[bound->knots_num[3]]->x;
-               y[0] = mesh->knots[bound->knots_num[0]]->z;
-               y[1] = mesh->knots[bound->knots_num[1]]->z;
-               y[2] = mesh->knots[bound->knots_num[2]]->z;
-               y[3] = mesh->knots[bound->knots_num[3]]->z;
-            }
+            x[0] = mesh->knots[bound->knots_num[0]]->x;
+            x[1] = mesh->knots[bound->knots_num[1]]->x;
+            x[2] = mesh->knots[bound->knots_num[2]]->x;
+            x[3] = mesh->knots[bound->knots_num[3]]->x;
+            y[0] = mesh->knots[bound->knots_num[0]]->z;
+            y[1] = mesh->knots[bound->knots_num[1]]->z;
+            y[2] = mesh->knots[bound->knots_num[2]]->z;
+            y[3] = mesh->knots[bound->knots_num[3]]->z;
+            planeNormal[1] = 1.;
          }
-         a0 = (x[1] - x[0])*(y[2] - y[0]) - (y[1] - y[0])*(x[2] - x[0]);
-         a1 = (x[1] - x[0])*(y[3] - y[2]) - (y[1] - y[0])*(x[3] - x[2]);
-         a2 = (x[3] - x[1])*(y[2] - y[0]) - (y[3] - y[1])*(x[2] - x[0]);
-         real s = 1;
-         if (a0 < 0) s = -1;
-         else if (abs(a0) < 1e-12) s = 0;
-         for (int i = 0; i < 6; i++)
-            if (mesh->hexas[mesh->faces[bound->face_num]->hexa_nums[0]]->faces_num[i] == bound->face_num) {
-               s *= mesh->hexas[mesh->faces[bound->face_num]->hexa_nums[0]]->faces_sign[i]; break;}
-
-         localM2d[0][0] = s * (a0 / 9.  + a1 / 36. + a2 / 36.);  localM2d[0][1] = s * (a0 / 18. + a1 / 36. + a2 / 72.);  localM2d[0][2] = s * (a0 / 18. + a1 / 72. + a2 / 36.);  localM2d[0][3] = s * (a0 / 36. + a1 / 72. + a2 / 72.);
-         localM2d[1][0] = s * (a0 / 18. + a1 / 36. + a2 / 72.);  localM2d[1][1] = s * (a0 / 9.  + a1 / 12. + a2 / 36.);  localM2d[1][2] = s * (a0 / 36. + a1 / 72. + a2 / 72.);  localM2d[1][3] = s * (a0 / 18. + a1 / 24. + a2 / 36.);
-         localM2d[2][0] = s * (a0 / 18. + a1 / 72. + a2 / 36.);  localM2d[2][1] = s * (a0 / 36. + a1 / 72. + a2 / 72.);  localM2d[2][2] = s * (a0 / 9.  + a1 / 36. + a2 / 12.);  localM2d[2][3] = s * (a0 / 18. + a1 / 36. + a2 / 24.);
-         localM2d[3][0] = s * (a0 / 36. + a1 / 72. + a2 / 72.);  localM2d[3][1] = s * (a0 / 18. + a1 / 24. + a2 / 36.);  localM2d[3][2] = s * (a0 / 18. + a1 / 36. + a2 / 24.);  localM2d[3][3] = s * (a0 / 9.  + a1 / 12. + a2 / 12.);
-
       }
+      else
+      {
+         if (abs(zn) > abs(yn)) // max = z
+         {
+            x[0] = mesh->knots[bound->knots_num[0]]->x;
+            x[1] = mesh->knots[bound->knots_num[1]]->x;
+            x[2] = mesh->knots[bound->knots_num[2]]->x;
+            x[3] = mesh->knots[bound->knots_num[3]]->x;
+            y[0] = mesh->knots[bound->knots_num[0]]->y;
+            y[1] = mesh->knots[bound->knots_num[1]]->y;
+            y[2] = mesh->knots[bound->knots_num[2]]->y;
+            y[3] = mesh->knots[bound->knots_num[3]]->y;
+            planeNormal[2] = 1.;
+         }
+         else // max = y
+         {
+            x[0] = mesh->knots[bound->knots_num[0]]->x;
+            x[1] = mesh->knots[bound->knots_num[1]]->x;
+            x[2] = mesh->knots[bound->knots_num[2]]->x;
+            x[3] = mesh->knots[bound->knots_num[3]]->x;
+            y[0] = mesh->knots[bound->knots_num[0]]->z;
+            y[1] = mesh->knots[bound->knots_num[1]]->z;
+            y[2] = mesh->knots[bound->knots_num[2]]->z;
+            y[3] = mesh->knots[bound->knots_num[3]]->z;
+            planeNormal[1] = 1.;
+         }
+      }
+      std::vector<real> bnormal = {xn, yn, zn};
+      
+      real Sfactor = abs(scalar(bnormal, planeNormal));
+      a0 = (x[1] - x[0])*(y[2] - y[0]) - (y[1] - y[0])*(x[2] - x[0]);
+      a1 = (x[1] - x[0])*(y[3] - y[2]) - (y[1] - y[0])*(x[3] - x[2]);
+      a2 = (x[3] - x[1])*(y[2] - y[0]) - (y[3] - y[1])*(x[2] - x[0]);
+      real s = 1;
+      if (a0 < 0) s = -1;
+      else if (abs(a0) < 1e-12) s = 0;
+      for (int i = 0; i < 6; i++)
+         if (mesh->hexas[mesh->faces[bound->face_num]->hexa_nums[0]]->faces_num[i] == bound->face_num) {
+            s *= mesh->hexas[mesh->faces[bound->face_num]->hexa_nums[0]]->faces_sign[i]; break;}
 
+      localM2d[0][0] = a0 / 9.  + a1 / 36. + a2 / 36.;  localM2d[0][1] = a0 / 18. + a1 / 36. + a2 / 72.;  localM2d[0][2] = a0 / 18. + a1 / 72. + a2 / 36.;  localM2d[0][3] = a0 / 36. + a1 / 72. + a2 / 72.;
+      localM2d[1][0] = a0 / 18. + a1 / 36. + a2 / 72.;  localM2d[1][1] = a0 / 9.  + a1 / 12. + a2 / 36.;  localM2d[1][2] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[1][3] = a0 / 18. + a1 / 24. + a2 / 36.;
+      localM2d[2][0] = a0 / 18. + a1 / 72. + a2 / 36.;  localM2d[2][1] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[2][2] = a0 / 9.  + a1 / 36. + a2 / 12.;  localM2d[2][3] = a0 / 18. + a1 / 36. + a2 / 24.;
+      localM2d[3][0] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[3][1] = a0 / 18. + a1 / 24. + a2 / 36.;  localM2d[3][2] = a0 / 18. + a1 / 36. + a2 / 24.;  localM2d[3][3] = a0 / 9.  + a1 / 12. + a2 / 12.;
       for (int i = 0; i < 4; i++)
-         b[bound->knots_num[i]] += bound->value * (localM2d[i][0] + localM2d[i][1] + localM2d[i][2] + localM2d[i][3]);
+         b[bound->knots_num[i]] += s * bound->value * (localM2d[i][0] + localM2d[i][1] + localM2d[i][2] + localM2d[i][3]) / Sfactor;
    }
 }
 
@@ -543,37 +541,4 @@ void FEM::check_test()
    }
    std::cout << "\n |q - u| = " << sqrt(qqt2) / sqrt(ug2) << '\n';
 }
-
-void FEM::WriteMatrix(Matrix* A)
-{
-   double** mat = new double* [num_of_knots] {};
-   for (int i = 0; i < num_of_knots; i++)
-   {
-      mat[i] = new double[num_of_knots] {};
-   }
-
-   for (int i = 0; i < num_of_knots; i++)
-   {
-      mat[i][i] = A->di[i];
-      for (int j = A->ig[i]; j < A->ig[i + 1]; j++)
-      {
-         mat[i][A->jg[j]] = A->l[j];
-         mat[A->jg[j]][i] = A->u[j];
-      }
-   }
-
-   std::ofstream out("matrix.txt");
-
-   for (int i = 0; i < num_of_knots; i++)
-   {
-      for (int j = 0; j < num_of_knots; j++)
-      {
-         out.setf(std::ios::left);
-         out.width(15);
-         out << mat[i][j];
-      }
-      out << "\n";
-   }
-}
-
 }

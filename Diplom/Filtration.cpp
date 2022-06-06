@@ -46,11 +46,12 @@ namespace filtr {
 		fem = new FEMns::FEM(mesh);
 		SetDiffKoef();
 		fem->SolveElliptic();
-
+		fem->GetSolutionOnPlane(0);
 		str = new streams::Streams(mesh, fem->GetKnots());
 		str->FindStreams();
-		str->CheckStreams();
+		//str->AdjustBeta();
 	}
+
 	void Filtration::SetDiffKoef()
 	{
 		std::sort(phases.begin(), phases.end(), [](phase& ph1, phase& ph2){ return ph1.h > ph2.h;});

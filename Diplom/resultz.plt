@@ -1,10 +1,10 @@
 unset key
 set palette functions gray, gray, gray 
 set cntrparam linear
-set cntrparam points 10
+set cntrparam points 100
 # smooth unique
 set dgrid3d 200,200, 1
-#set dgrid3d splines 
+set dgrid3d splines 
 # set dgrid3d 11,11
 set pm3d at b
 set ticslevel 0.8

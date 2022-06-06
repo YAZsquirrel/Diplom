@@ -17,6 +17,7 @@ namespace mesh_comps
       //unsigned int knot_num;
       knot(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
       knot() : x(0.0), y(0.0), z(0.0) {}
+      ~knot(){}
       real x, y, z;
    };
 
@@ -68,6 +69,7 @@ namespace mesh_comps
       }
    };
 
+
    class Mesh
    {
       public: 
@@ -110,11 +112,9 @@ namespace mesh_comps
 
        private: 
 
-       short sign(real r) {
-          if (r > 0) return 1;
-          else if (r < 0) return -1;
-          else return 0;
-       }
+          short sign(real x) {
+             return -(x < 0.) + (x > 0);
+          }
        int xn = 0, yn = 0, zn = 0;
        std::vector<real> layers;
        knot env_corner1, env_corner2, step;
