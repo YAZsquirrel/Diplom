@@ -1,5 +1,5 @@
 #pragma once
-#define DEBUG0
+//#define DEBUG0
 
 #include <vector>
 #include <cmath>

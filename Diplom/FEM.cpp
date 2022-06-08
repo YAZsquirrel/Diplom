@@ -14,6 +14,7 @@ FEM::FEM(Mesh* _mesh)
 #endif // DEBUG
 
 
+
    std::ifstream fknots("Knots.txt");
    std::ifstream fhexas("Hexahedrons.txt");
    std::ifstream fbounds1("FirstBounds.txt");
@@ -58,8 +59,8 @@ FEM::FEM(Mesh* _mesh)
       bound* cond = new bound;
       for (int j = 0; j < 4; j++)
          fbounds1 >> cond->knots_num[j];
-
       fbounds1 >> cond->value;
+
       for (int f = 0; f < mesh->faces.size(); f++)
       {
          bool found[4]{};
@@ -229,7 +230,6 @@ void FEM::Output(std::ofstream& out)
       // std::cout << std::scientific << "| " << ug(&knots[i]) << "\t| " << q[i] << "\t| "
       //    << abs(q[i] - ug(&knots[i])) << "\t|\n";
    }
-
 }
 
 void FEM::AddFirstBounds()
@@ -244,7 +244,7 @@ void FEM::AddFirstBounds()
          //for (int j = 0; j < A->ig[num_of_knots]; j++)
          //   if (A->jg[j] == cond->knots_num[i])
          //      A->u[j] = 0.;
-         #ifdef DEBUG
+         #ifdef DEBUG1
          b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);//cond->value;// ;
          #else
          b[cond->knots_num[i]] = 1e10 * cond->value;
@@ -335,6 +335,7 @@ void FEM::AddSecondBounds()
       localM2d[1][0] = a0 / 18. + a1 / 36. + a2 / 72.;  localM2d[1][1] = a0 / 9.  + a1 / 12. + a2 / 36.;  localM2d[1][2] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[1][3] = a0 / 18. + a1 / 24. + a2 / 36.;
       localM2d[2][0] = a0 / 18. + a1 / 72. + a2 / 36.;  localM2d[2][1] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[2][2] = a0 / 9.  + a1 / 36. + a2 / 12.;  localM2d[2][3] = a0 / 18. + a1 / 36. + a2 / 24.;
       localM2d[3][0] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[3][1] = a0 / 18. + a1 / 24. + a2 / 36.;  localM2d[3][2] = a0 / 18. + a1 / 36. + a2 / 24.;  localM2d[3][3] = a0 / 9.  + a1 / 12. + a2 / 12.;
+      
       for (int i = 0; i < 4; i++)
          b[bound->knots_num[i]] += s * bound->value * (localM2d[i][0] + localM2d[i][1] + localM2d[i][2] + localM2d[i][3]) / Sfactor;
    }
@@ -388,6 +389,9 @@ void FEM::CreateG(hexahedron* hexa)
    }
    std::cout << "\n";
 #else
+#ifdef DEBUG1
+   hexa->lam = 1.;
+#endif
    for (int i = 0; i < 8; i++)
       for (int j = 0; j < 8; j++)
          localG[i][j] = hexa->lam * Integrate(Gij, i, j, hexa->knots_num);

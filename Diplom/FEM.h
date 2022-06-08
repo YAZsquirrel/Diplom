@@ -1,5 +1,6 @@
 #pragma once
 //#define DEBUG
+//#define DEBUG1
 
 #include <cmath>
 #include <iostream>

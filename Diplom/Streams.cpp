@@ -135,13 +135,10 @@ namespace streams
             std::vector<real> norm = { face->normal.x, face->normal.y, face->normal.z };
             real Qei = -Integrate2D(G2Dij, fn, e, xyz, opposite) * hexa->faces_sign[f] * mesh->hexas[e]->lam;
             if (visited[fn])
-               if (sign(Qei) != sign(Q_av[fn]))
-                  Q_av[fn] += Qei;
-               else 
-                  Q_av[fn] = (1. - w) * Qei + w * Q_av[fn];
+               Q_av[fn] = (1. - w) * Qei + w * Q_av[fn] * hexa->faces_sign[f];
             else
             { 
-               Q_av[fn] = Qei;
+               Q_av[fn] = Qei * hexa->faces_sign[f];
                visited[fn] = true;
             }
          }
@@ -164,34 +161,13 @@ namespace streams
 
    }
 
-   void Streams::SetAlpha()
-   {
-      real max_flow = 0.;
-      for (int i = 0; i < B->dim; i++)
-         if (abs(Q[i]) > max_flow) 
-            max_flow = abs(Q[i]);
-      //for (int i = 0; i < B->dim; i++)
-      //   alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q[i]));
-      for (int e = 0; e < mesh->hexas.size(); e++)
-      {
-         auto& el = mesh->hexas[e];
-         real disbalance = 0.;
-         for (int f = 0; f < 6; f++)
-            disbalance += el->faces_sign[f] * (Q[el->faces_num[f]] + dQ[el->faces_num[f]]);
-         for (int i = 0; i < 6; i++)
-            alpha[el->faces_num[i]] += 1. / disbalance;
-      }
-      for (int f = 0; f < mesh->faces.size(); f++)
-         alpha[f] /= 2.;
-   }
-
    void Streams::BalanceStreams()
    {
       B = MakeSparseFormat(6, mesh->faces.size(), mesh->hexas.size(), false, mesh);
       for (int i = 0; i < B->dim; i++)
          Q[i] = Q_av[i];
       int k = 0;
-      AdjustBeta(1e-10);
+      AdjustBeta(1e-9);
       SetAlpha();
       AssembleMatrix();
 #ifdef DEBUG0
@@ -199,12 +175,11 @@ namespace streams
 #endif
 
       do {
-
          AssembleMatrix();
          AssembleRightPart();
          SolveSLAE(B, dQ, d);
          k++;
-      } while (AdjustBeta(1e-10));
+      } while (AdjustBeta(1e-9));
 
       for (int f = 0; f < mesh->faces.size(); f++)
          Q[f] = Q[f] + dQ[f];
@@ -242,13 +217,14 @@ namespace streams
       // fixate knowns
       for (auto cond : mesh->bounds2)
       {
-         B->di[cond->face_num] = 0.;//cond->value;
+         B->di[cond->face_num] = 1.;//cond->value;
          Q[cond->face_num] = cond->value;
          for (int j = B->ig[cond->face_num]; j < B->ig[cond->face_num + 1]; j++)
             B->l[j] = 0.;
          for (int j = 0; j < B->ig[B->dim]; j++)
             if (B->jg[j] == cond->face_num)
               B->u[j] = 0.;
+         MatSymmetrisation(B, d, cond->face_num);
       }
    }
 
@@ -274,6 +250,27 @@ namespace streams
          d[cond->face_num] = 0.;
    }
 
+   void Streams::SetAlpha()
+   {
+      real max_flow = 0.;
+      for (int i = 0; i < B->dim; i++)
+         if (abs(Q[i]) > max_flow)
+            max_flow = abs(Q[i]);
+      //for (int i = 0; i < B->dim; i++)
+      //   alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q[i]));
+      for (int e = 0; e < mesh->hexas.size(); e++)
+      {
+         auto& el = mesh->hexas[e];
+         real disbalance = 0.;
+         for (int f = 0; f < 6; f++)
+            disbalance += el->faces_sign[f] * Q[el->faces_num[f]];
+         for (int i = 0; i < 6; i++)
+            alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-9);
+      }
+      for (int f = 0; f < mesh->faces.size(); f++)
+         alpha[f] /= 2.;
+   }
+
    bool Streams::AdjustBeta(real eps)
    {
       std::cout << '\n' << "Summary streams:\n";
@@ -282,7 +279,7 @@ namespace streams
       real max_flow = 0.;
       for (int i = 0; i < B->dim; i++)
          max_flow = abs(Q[i]) < max_flow ? max_flow : abs(Q[i]);
-
+      bool isBalanced = true;
       real dissum = 0.;
       for (int e = 0; e < mesh->hexas.size(); e++)
       {
@@ -290,14 +287,19 @@ namespace streams
          real sum = 0.;
          for (int f = 0; f < 6; f++)
             sum += el->faces_sign[f] * (Q[el->faces_num[f]] + dQ[el->faces_num[f]]);
-         sum /= max_flow;
-         if (sum > eps)
-            beta[e] += 10.;
-         dissum += abs(sum);
-      }
-      std::cout << "\t----Total Disbalance: " << dissum << '\n';
+         if (abs(sum) / max_flow > eps)
+         {
+            beta[e] += 1./abs(sum);// /mesh->neighbors[e].size(); 
+            isBalanced = false;
+         }
+         //for (auto& i : mesh->neighbors[e])
+         //   beta[i] += 1./abs(sum) / mesh->neighbors[e].size();
 
-      return dissum > eps;
+         dissum += abs(sum) / max_flow;
+      }
+      std::cout << "\t----Total Disbalance: " << abs(dissum) << '\n';
+
+      return !isBalanced;
    }
 
    real Streams::Integrate2D(const std::function<real(real, real, int, int, int, int)> f, int face_num, int e, int xyz, int opposite)

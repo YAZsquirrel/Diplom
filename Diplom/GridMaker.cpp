@@ -283,6 +283,8 @@ namespace mesh_comps
       for (int i = 0; i < knots.size(); i++)
          fknots << knots[i]->x << " " << knots[i]->y << " " << knots[i]->z << '\n';
       fknots.close();
+      if (well_start_indecies[0] < 0)
+         well_start_indecies = new int[1]{ plane_size };
       FindAllHexasAndBounds(plane_size, well_start_indecies, inwell_indecies, zs);
 
       delete[] well_start_indecies;
