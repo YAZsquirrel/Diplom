@@ -20,12 +20,13 @@ namespace streams
 			std::vector<real> Q;
 			Streams(mesh_comps::Mesh* mesh, std::vector<real> &P);
 			void FindStreams();
+			void OutputStreams(std::ofstream& out, std::ofstream& outone, int face_num_to_out);
 		private:
 			short sign(real x) {
 				return -(x < 0.) + (x > 0);
 			}
 			real clamp(real max, real min, real val) {
-				return (val > max) * max + (val < min) * min + (val < max&& val > min) * val;
+				return (val > max) * max + (val < min) * min + (val < max && val > min) * val;
 			}
 			void SetAlpha();
 

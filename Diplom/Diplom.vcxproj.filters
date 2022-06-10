@@ -43,6 +43,9 @@
     <Filter Include="Файлы заголовков\Streams">
       <UniqueIdentifier>{593b9a02-0b7b-41d6-b084-601afd15e7b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Output">
+      <UniqueIdentifier>{8ebe523c-0d89-4203-a1de-8921845f916e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -91,9 +94,6 @@
     <Text Include="Knots.txt">
       <Filter>Transitional data</Filter>
     </Text>
-    <Text Include="Result.txt">
-      <Filter>Transitional data</Filter>
-    </Text>
     <Text Include="SecondBounds.txt">
       <Filter>Transitional data</Filter>
     </Text>
@@ -111,6 +111,15 @@
     </Text>
     <Text Include="ResultZ.txt">
       <Filter>Additonal Data</Filter>
+    </Text>
+    <Text Include="StreamsResult.txt">
+      <Filter>Output</Filter>
+    </Text>
+    <Text Include="Stream1Resultt.txt">
+      <Filter>Output</Filter>
+    </Text>
+    <Text Include="Result.txt">
+      <Filter>Output</Filter>
     </Text>
   </ItemGroup>
 </Project>
