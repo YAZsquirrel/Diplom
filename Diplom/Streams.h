@@ -1,10 +1,9 @@
 #pragma once
 //#define DEBUG0
 
+typedef double real;
 #include <vector>
 #include <cmath>
-typedef double real;
-
 #include <functional>
 #include "Mat_structs.h"
 using namespace mats;
@@ -20,7 +19,7 @@ namespace streams
 			std::vector<real> Q;
 			Streams(mesh_comps::Mesh* mesh, std::vector<real> &P);
 			void FindStreams();
-			void OutputStreams(std::ofstream& out, std::ofstream& outone, int face_num_to_out);
+			void OutputStreams(std::ofstream& out, std::ofstream& outone, std::ofstream& outdisbalance, int face_num_to_out);
 		private:
 			short sign(real x) {
 				return -(x < 0.) + (x > 0);
@@ -28,7 +27,6 @@ namespace streams
 			real clamp(real max, real min, real val) {
 				return (val > max) * max + (val < min) * min + (val < max && val > min) * val;
 			}
-			void SetAlpha();
 
 			std::function<real(real, real, int, int, int, int)> G2Dij;
 			real Integrate2D(const std::function<real(real, real, int, int, int, int)> f, int face_num, int e, int xyz, int opposite);
@@ -46,6 +44,8 @@ namespace streams
 			void AssembleMatrix();
 			void AssembleRightPart();
 			bool AdjustBeta(real eps);					
+			void SetAlpha();
+			void SetKnownFlows();
 
 			void FindAverageStreams();
 			void BalanceStreams();

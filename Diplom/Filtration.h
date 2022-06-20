@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 typedef double real;
-using namespace mesh_comps;
+//using namespace mesh_comps;
 using namespace streams;
 
 namespace filtr
@@ -29,13 +29,15 @@ namespace filtr
    {
       real K;
       real Fi;
+      knot corner0;
+      knot corner1;
    };
 
    class Filtration
    {
       public:
       //Filtration();
-      solid por;
+      std::vector<solid> pors;
       Mesh* mesh;
       FEMns::FEM* fem;
       Streams* str;

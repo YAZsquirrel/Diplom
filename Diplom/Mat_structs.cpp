@@ -63,8 +63,8 @@ namespace mats
 
       Matrix* M = new Matrix;
       M->dim = elemsize;
-      M->ig = new int[elemsize + 1]{};
-      M->jg = new int[listsize + 1]{};  // +1???
+      M->ig.resize(elemsize + 1, 0);
+      M->jg.resize(listsize + 1, 0);  // +1???
 
       for (int i = 0; i < elemsize; i++)
       {
@@ -77,21 +77,13 @@ namespace mats
             iaddr = list2[iaddr];
          }
       }
-
-      //for (int i = 0; i < num_of_knots + 1; i++)
-      //   std::cout << A->ig[i] << " ";
-      //std::cout << '\n';
-      //for (int i = 0; i < listsize + 1; i++)
-      //   std::cout << A->jg[i] << " ";
-      //std::cout << '\n';
-
       delete[] listbeg;
       delete[] list1;
       delete[] list2;
 
-      M->l = new real[listsize + 1]{};
-      M->u = new real[listsize + 1]{};
-      M->di = new real[elemsize]{};
+      M->l.resize(listsize + 1, 0.);
+      M->u.resize(listsize + 1, 0.);
+      M->di.resize(elemsize, 0.);
       return M;
 
    }
@@ -228,13 +220,13 @@ namespace mats
          M->u[j] = 0;
       }
 
-      for (int iIG = 0; iIG < M->dim; iIG++)
+      for (int i = 0; i < M->dim; i++)
       {
-         for (int j = M->ig[iIG]; j < M->ig[iIG + 1]; j++)
+         for (int j = M->ig[i]; j < M->ig[i + 1]; j++)
             if (M->jg[j] == i)
             {
-               b[iIG] -= b[i] * M->l[j];
-               M->l[j] = 0;
+               b[i] -= b[i] * M->l[j];
+               M->l[j] = 0.0;
             }
       }
    }

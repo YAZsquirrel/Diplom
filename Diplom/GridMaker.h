@@ -27,7 +27,8 @@ namespace mesh_comps
       real radius;
       real h1, h2; 
       real intake;
-
+      std::vector<int*> faces_knots_num;
+      std::vector<int> bound_num;
       well(real _x, real _y, real rad, real _h1, real _h2, real th) :
          x(_x), y(_y), radius(rad), h1(_h1), h2(_h2), intake(th) {}
    };
@@ -79,8 +80,8 @@ namespace mesh_comps
        std::vector<hexahedron*> hexas;
        std::vector<face*> faces;
        std::vector<std::set<int>> neighbors;
-       std::list<bound*> bounds1;
-       std::list<bound*> bounds2;
+       std::vector<bound*> bounds1;
+       std::vector<bound*> bounds2;
 
        void FindNeighborsAndFaces();
 
@@ -109,21 +110,19 @@ namespace mesh_comps
        void FindFaceNormals();
        void GenerateMesh();
        void SetSignsForHexaNormals();
-
-       private: 
-
-          short sign(real x) {
-             return -(x < 0.) + (x > 0);
-          }
-       int xn = 0, yn = 0, zn = 0;
-       std::vector<real> layers;
-       knot env_corner1, env_corner2, step;
        struct well_info
        {
           std::vector<well> wells;
           real conc_rad, conc;
           int rad_knots;
        } w_info;
+
+       private: 
+
+       short sign(real x) { return -(x < 0.) + (x > 0); }
+       int xn = 0, yn = 0, zn = 0;
+       std::vector<real> layers;
+       knot env_corner1, env_corner2, step;
 
        void FindAllHexasAndBounds(int plain_size, int* well_inds, std::vector<int>** inwell_indecies, real* zs);
        //void 

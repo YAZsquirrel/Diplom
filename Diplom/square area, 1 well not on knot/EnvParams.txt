@@ -24,8 +24,8 @@ xh yh zh    -  steps
 
 wells_num
 x y
-h1 h2 - perforation height
-v		- perforation speed (+ = outtake (vsos))
+h1 h2 - perforation height [h1 > h2] 
+v		- perforation speed (+ = outtake (vsos)) [m3/day]
 rad	- well radius
 . \
 .  | wells_num - 1

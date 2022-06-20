@@ -42,12 +42,12 @@ namespace mesh_comps
 
    void Mesh::FindNeighborsAndFaces()
    {
-      int lfn[6][4]{{0,1,2,3}, // local face num
-                    {4,5,6,7},
-                    {2,0,6,4},
-                    {3,1,7,5},
-                    {0,1,4,5},
-                    {2,3,6,7}}; // низ, верх, права, лева, перед, зад  // если смотреть в (+x,0,0)
+      int lfn[6][4]{{0,1,2,3}, // z- // local face num
+                    {4,5,6,7}, // z+
+                    {2,0,6,4}, // x-
+                    {3,1,7,5}, // x+
+                    {0,1,4,5}, // y-
+                    {2,3,6,7}};// y+  // низ, верх, перед, зад, права, лева  // если смотреть в (+x,0,0)
       std::vector<std::list<int>> arr;
       arr.resize(knots.size());
       for (int e = 0; e < hexas.size(); e++)
@@ -471,20 +471,20 @@ namespace mesh_comps
       for (int i = 0; i < w_info.wells.size(); i++)
          size += lower_bound2_edges[i].size();
 
-      fbounds2 << size * (zn - 1) + plain_size * 2 << '\n';
+      fbounds2 << size * (zn - 1) << '\n';// + plain_size * 2 << '\n';
       real P_plast;
       fFP >> P_plast;
       fFP.close();
 
       // add bottom layer (II)
-      for (int i = 0; i < plain_size; i++)
-      {
-         fbounds2 << lower_faces[i][0] << " " 
-                  << lower_faces[i][1] << " " 
-                  << lower_faces[i][2] << " " 
-                  << lower_faces[i][3] << " " 
-                  << 0.0 << '\n';
-      }
+      //for (int i = 0; i < plain_size; i++)
+      //{
+      //   fbounds2 << lower_faces[i][0] << " " 
+      //            << lower_faces[i][1] << " " 
+      //            << lower_faces[i][2] << " " 
+      //            << lower_faces[i][3] << " " 
+      //            << 0.0 << '\n';
+      //}
 
 
       // add knots on upper plains 
@@ -501,17 +501,17 @@ namespace mesh_comps
             fhexas << '\n';
 
          }
-         if (k == zn - 1)
-         {
-            for (int i = 0; i < plain_size; i++)
-            {
-               fbounds2 << lower_faces[i][0] + plain_knot_size * k << " "
-                  << lower_faces[i][1] + plain_knot_size * k << " "
-                  << lower_faces[i][2] + plain_knot_size * k << " "
-                  << lower_faces[i][3] + plain_knot_size * k << " "
-                  << 0.0 << '\n';
-            }
-         }
+         //if (k == zn - 1)
+         //{
+         //   for (int i = 0; i < plain_size; i++)
+         //   {
+         //      fbounds2 << lower_faces[i][0] + plain_knot_size * k << " "
+         //         << lower_faces[i][1] + plain_knot_size * k << " "
+         //         << lower_faces[i][2] + plain_knot_size * k << " "
+         //         << lower_faces[i][3] + plain_knot_size * k << " "
+         //         << 0.0 << '\n';
+         //   }
+         //}
 
          for (int j = 0; j < side_bound1.size(); j++)
          {
@@ -526,17 +526,22 @@ namespace mesh_comps
          {
             real v = 0.0;
             real zmid = (zs[k - 1] + zs[k]) / 2.;
-            if (w_info.wells[i].h2 > zmid && zmid > w_info.wells[i].h1)
+            if (w_info.wells[i].h2 < zmid && zmid < w_info.wells[i].h1)
                v = w_info.wells[i].intake;
+            //else continue;
 
             for (int j = 0; j < lower_bound2_edges[i].size(); j++)
             {
                int *edge = lower_bound2_edges[i][j];
-               fbounds2 << edge[0] + plain_knot_size * (k - 1) << " "
-                        << edge[1] + plain_knot_size * (k - 1) << " "
-                        << edge[0] + plain_knot_size * k << " "
-                        << edge[1] + plain_knot_size * k << " "
+               int *knots = new int[4]{ edge[0] + plain_knot_size * (k - 1), edge[1] + plain_knot_size * (k - 1),
+                           edge[0] + plain_knot_size * k, edge[1] + plain_knot_size * k };
+               w_info.wells[i].faces_knots_num.push_back(knots);
+               fbounds2 << knots[0] << " "
+                        << knots[1] << " "
+                        << knots[2] << " "
+                        << knots[3] << " "
                         << v << '\n';
+
             }
          }
       }

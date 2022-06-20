@@ -7,8 +7,8 @@ using namespace mesh_comps;
 namespace mats{
 
    struct Matrix {
-      real* l, * u, * di;
-      int* ig, * jg;
+      std::vector<real> l, u, di;
+      std::vector<int> ig, jg;
       size_t dim;
    };
 

@@ -1,7 +1,7 @@
 #pragma once
 //#define DEBUG
 //#define DEBUG1
-
+#include <iomanip>
 #include <cmath>
 #include <iostream>
 #include <functional>
@@ -62,7 +62,9 @@ class FEM
    std::function<real(real, real, real, int, int, int[8])> Mij;
 
    public:
-   int GetKnotNum() { return mesh->knots.size(); };
+   int GetKnotsNum () {return num_of_knots;}
+   int GetHexasNum () {return num_of_FE;}
+
    std::vector<real>& GetKnots() { return q; };
    FEM(Mesh* _mesh);
    void SolveElliptic();

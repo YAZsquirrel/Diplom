@@ -20,8 +20,8 @@ int main()
 	filtrn->Start();
 	std::clock_t end = clock();
 	std::cout << std::defaultfloat;
-	std::cout << "Time taken: " << end - start << " ms/ " << (end - start) / 1000. << "secs/ " << (end - start) / 1000. / 60. << "min \nKnots num: " << filtrn->fem->GetKnotNum() << "\n";
-	filtrn->fem->GetSolutionOnPlane(0);
+	std::cout << "Time taken: " << end - start << " ms / " << (end - start) / 1000. << "s / " << (end - start) / 1000. / 60. 
+	<< "mins \nKnots num: " << filtrn->fem->GetKnotsNum() << " FE num: " << filtrn->fem->GetHexasNum() << "\n";
 #endif // DEBUG
 
 }

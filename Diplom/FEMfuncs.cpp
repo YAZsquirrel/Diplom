@@ -14,12 +14,12 @@ real FEM::f(knot *point)
 	//return 0;
 	switch (un)
 	{
-	case 1: return 1;
+	case 1: return 0;
 	case 2: return 0;
 	case 3: return 0;
-	case 4: return -4;
-	case 5: return x * x + y * y; //
-	case 6: return -4 + x * x + y * y;
+	case 4: return -6 * x;
+	case 5: return sin(x); //
+
 	default:
 		return 0;
 	}
@@ -36,9 +36,9 @@ real FEM::ug(knot *point)
 	case 1: return 1;
 	case 2: return x + y + z;
 	case 3: return x;
-	case 4: return x * x + y * y;
-	case 5: return x * x + y * y; // x^3 + y^3 + xy + 1
-	case 6: return x * x + y * y;
+	case 4: return x * x * x;
+	case 5: return sin(x); // x^3 + y^3 + xy + 1
+
 	default:
 		return 0;
 	}

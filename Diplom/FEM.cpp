@@ -7,13 +7,11 @@ namespace FEMns
 FEM::FEM(Mesh* _mesh)
 {
 #pragma region input
-#if DEBUG
+#ifdef DEBUG
    mesh = new Mesh();
 #else
    mesh = _mesh;
 #endif // DEBUG
-
-
 
    std::ifstream fknots("Knots.txt");
    std::ifstream fhexas("Hexahedrons.txt");
@@ -48,9 +46,12 @@ FEM::FEM(Mesh* _mesh)
          fhexas >> hexa->knots_num[k];
    }
    fhexas.close();
+#ifndef DEBUG1
    mesh->FindNeighborsAndFaces();
    mesh->FindFaceNormals();
    mesh->SetSignsForHexaNormals();
+#endif // DEBUG1
+
 
    int numOfBounds;
    fbounds1 >> numOfBounds;
@@ -101,6 +102,24 @@ FEM::FEM(Mesh* _mesh)
       mesh->bounds2.push_back(cond);
    }
    fbounds2.close();
+
+   // set bound faces nums to respective wells
+   int bound_num;
+   for (int i = 0; i < mesh->w_info.wells.size(); i++)
+      for (int b = 0; b < mesh->w_info.wells[i].faces_knots_num.size(); b++)
+         for (int fb = 0; fb < mesh->bounds2.size(); fb++)
+         {
+            bool found[4]{};
+            for (int fi = 0; fi < 4; fi++)
+               for (int fj = 0; fj < 4 && !found[fi]; fj++)
+                  found[fi] = mesh->w_info.wells[i].faces_knots_num[b][fi] == mesh->bounds2[fb]->knots_num[fj];
+            if ((found[0] && found[1] && found[2] && found[3]))
+            {
+               mesh->w_info.wells[i].bound_num.push_back(fb);
+               break;
+            }
+         }
+
 
 #pragma endregion
 
@@ -178,18 +197,16 @@ void FEM::SolveElliptic()
 void FEM::GetSolutionOnPlane(real z)
 {
    std::ofstream zout("ResultZ.txt");
-
+   zout << std::setprecision(14);
    for (int i = 0; i < num_of_knots; i++)
    {
       //if (mesh->knots[i]->z <= z + 1e-13 && mesh->knots[i + 1]->z >= z + 1e-13)
       if (abs(mesh->knots[i]->z - z) <= 1e-12)
       {
-         zout << mesh->knots[i]->x << " " 
-               << mesh->knots[i]->y << " "
-               //<< mesh->knots[i]->z << " "
-               //<< q[i] * (1. - (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)) +
-               //   q[i + 1]     *       (z - mesh->knots[i]->z) / (mesh->knots[i + 1]->z - mesh->knots[i]->z)
-               << q[i] << '\n';}
+         zout << std::defaultfloat;
+      zout << mesh->knots[i]->x << " " 
+               << mesh->knots[i]->y << " ";
+               zout << std::scientific << q[i] << '\n';}
    }
    zout.close();
 }
@@ -212,23 +229,21 @@ void FEM::Output(std::ofstream& out)
    out.width(15);
    out << "|\n";
    //std::cout << title;
+   out << std::setprecision(14);
 
    for (int i = 0; i < num_of_knots; i++)
    {
+      out << std::defaultfloat;
       out << "|" << mesh->knots[i]->x;
       out.width(15);
       out << "|" << mesh->knots[i]->y;
       out.width(15);
       out << "|" << mesh->knots[i]->z;
       out.width(15);
+      out << std::scientific;
       out << "|" << q[i];
       out.width(15);
       out << "|\n";
-      //out  << "| " << "\t| " << mesh->knots[i]->x << "\t| " << mesh->knots[i]->y << mesh->knots[i]->z << "\t| "
-      //   << std::scientific << ug(&mesh->knots[i]) << "\t| " << q[i] << "\t| "
-      //   << abs(q[i] - ug(&mesh->knots[i])) << "\t|\n";
-      // std::cout << std::scientific << "| " << ug(&knots[i]) << "\t| " << q[i] << "\t| "
-      //    << abs(q[i] - ug(&knots[i])) << "\t|\n";
    }
 }
 
@@ -238,19 +253,39 @@ void FEM::AddFirstBounds()
    {
       for (int i = 0; i < 4; i++)
       {
-         A->di[cond->knots_num[i]] = 1e10;
-         //for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
-         //   A->l[j] = 0.;
-         //for (int j = 0; j < A->ig[num_of_knots]; j++)
-         //   if (A->jg[j] == cond->knots_num[i])
-         //      A->u[j] = 0.;
+         A->di[cond->knots_num[i]] = 1.;//e10;
+         for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
+            A->l[j] = 0.;
+         for (int j = 0; j < A->ig[num_of_knots]; j++)
+            if (A->jg[j] == cond->knots_num[i])
+               A->u[j] = 0.;
          #ifdef DEBUG1
-         b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);//cond->value;// ;
+         //b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);//cond->value;// ;
+         b[cond->knots_num[i]] = ug(mesh->knots[cond->knots_num[i]]);
          #else
-         b[cond->knots_num[i]] = 1e10 * cond->value;
+         //b[cond->knots_num[i]] += 1e10 * cond->value;
+         b[cond->knots_num[i]] = cond->value;
          #endif
+         //MatSymmetrisation(A, b, cond->knots_num[i]);
       }
    }
+#ifdef DEBUG1
+   for (auto cond : mesh->bounds2)
+   {
+      for (int i = 0; i < 4; i++)
+      {
+        //A->di[cond->knots_num[i]] = 1e10;
+         A->di[cond->knots_num[i]] = 1.;//e10;
+         for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
+            A->l[j] = 0.;
+         for (int j = 0; j < A->ig[num_of_knots]; j++)
+            if (A->jg[j] == cond->knots_num[i])
+               A->u[j] = 0.;
+        //b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);
+        b[cond->knots_num[i]] = ug(mesh->knots[cond->knots_num[i]]);
+      }
+   }
+#endif
 }
 
 void FEM::AddSecondBounds()
@@ -337,7 +372,7 @@ void FEM::AddSecondBounds()
       localM2d[3][0] = a0 / 36. + a1 / 72. + a2 / 72.;  localM2d[3][1] = a0 / 18. + a1 / 24. + a2 / 36.;  localM2d[3][2] = a0 / 18. + a1 / 36. + a2 / 24.;  localM2d[3][3] = a0 / 9.  + a1 / 12. + a2 / 12.;
       
       for (int i = 0; i < 4; i++)
-         b[bound->knots_num[i]] += s * bound->value * (localM2d[i][0] + localM2d[i][1] + localM2d[i][2] + localM2d[i][3]) / Sfactor;
+         b[bound->knots_num[i]] += s * bound->value * (localM2d[i][0] + localM2d[i][1] + localM2d[i][2] + localM2d[i][3]) / Sfactor / 86400.;
    }
 }
 
@@ -348,14 +383,18 @@ void FEM::CreateSLAE()
    {
       hexa = mesh->hexas[i];
       CreateG(hexa);
-      CreateM(hexa);
       AddToA(hexa);
+#ifdef DEBUG1
+      CreateM(hexa);
       Createb(hexa);
+#endif // DEBUG1
    }
 #ifdef DEBUG
    WriteMatrix(A);
 #endif // DEBUG
+#ifndef DEBUG1
    AddSecondBounds();
+#endif
    AddFirstBounds();
 }
 
@@ -405,7 +444,7 @@ void FEM::Createb(hexahedron* hexa)
 {
    real localb[8]{};
    real f_[8]{};
-#ifdef DEBUG
+#ifdef DEBUG1
    for (int i = 0; i < 8; i++)
       f_[i] = f(mesh->knots[hexa->knots_num[i]]);
 #else

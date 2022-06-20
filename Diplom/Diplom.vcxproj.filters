@@ -86,6 +86,9 @@
     <ClInclude Include="Mat_structs.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="super_output.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="FirstBounds.txt">
@@ -115,10 +118,13 @@
     <Text Include="StreamsResult.txt">
       <Filter>Output</Filter>
     </Text>
-    <Text Include="Stream1Resultt.txt">
+    <Text Include="Result.txt">
       <Filter>Output</Filter>
     </Text>
-    <Text Include="Result.txt">
+    <Text Include="Stream1Result.txt">
+      <Filter>Output</Filter>
+    </Text>
+    <Text Include="HexaDisbalances.txt">
       <Filter>Output</Filter>
     </Text>
   </ItemGroup>

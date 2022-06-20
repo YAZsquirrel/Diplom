@@ -75,11 +75,11 @@ namespace streams
             switch(xyz)
             {
                case 1: // x
-                  calc_grad(i, mesh->hexas[e]->knots_num[i], opposite, v, u); break;
+                  calc_grad(i, mesh->hexas[e]->knots_num[i], opposite, u, v); break;
                case 2: // y
-                  calc_grad(i, mesh->hexas[e]->knots_num[i], v, opposite, u); break;
+                  calc_grad(i, mesh->hexas[e]->knots_num[i], u, opposite, v); break;
                case 0: // z
-                  calc_grad(i, mesh->hexas[e]->knots_num[i], v, u, opposite); break;
+                  calc_grad(i, mesh->hexas[e]->knots_num[i], u, v, opposite); break;
             }
 
          real n[3] = { mesh->faces[face_num]->normal.x, mesh->faces[face_num]->normal.y, mesh->faces[face_num]->normal.z };
@@ -123,16 +123,17 @@ namespace streams
             mesh_comps::face* face = mesh->faces[fn];
 
             real xn = face->normal.x,
-               yn = face->normal.y,
-               zn = face->normal.z;
+                 yn = face->normal.y,
+                 zn = face->normal.z;
             
-            //if (abs(xn) > abs(zn))
-            //   xyz = (abs(xn) > abs(yn)) ? 0 : 1;
-            //else
-            //   xyz = (abs(zn) > abs(yn)) ? 2 : 1;
+            if (abs(xn) > abs(zn))
+               xyz = (abs(xn) > abs(yn)) ? 1 : 2;
+            else
+               xyz = (abs(zn) > abs(yn)) ? 0 : 2;
             
-            xyz = f/2;
-            std::vector<real> norm = { face->normal.x, face->normal.y, face->normal.z };
+            //xyz = f/2;
+            std::vector<real> norm = { xn, yn, zn };
+
             real Qei = -Integrate2D(G2Dij, fn, e, xyz, opposite) * hexa->faces_sign[f] * mesh->hexas[e]->lam;
             if (visited[fn])
                Q_av[fn] = (1. - w) * Qei + w * Q_av[fn] * hexa->faces_sign[f];
@@ -164,17 +165,19 @@ namespace streams
    void Streams::BalanceStreams()
    {
       B = MakeSparseFormat(6, mesh->faces.size(), mesh->hexas.size(), false, mesh);
-      for (int i = 0; i < B->dim; i++)
-         Q[i] = Q_av[i];
       int k = 0;
-      //AdjustBeta(1e-9);
-      SetAlpha();
-      //AssembleMatrix();
 #ifdef DEBUG0
       WriteMatrix(B);
+      for (auto b : mesh->bounds2)
+         std::cout << Q_av[b->face_num] << "\n";
 #endif
-
-      while (AdjustBeta(1e-9))
+      //SetKnownFlows();
+      SetAlpha();
+#ifdef DEBUG0
+      for (auto b : mesh->bounds2)
+         std::cout << Q_av[b->face_num] << "\n";
+#endif     
+      while (AdjustBeta(1e-10))
       {
          AssembleMatrix();
          AssembleRightPart();
@@ -183,10 +186,60 @@ namespace streams
       } 
 
       for (int f = 0; f < mesh->faces.size(); f++)
-         Q[f] = Q[f] + dQ[f];
-      
+         Q[f] = Q_av[f] + dQ[f];  
    }
    
+
+   void Streams::SetKnownFlows()
+   {
+      for (auto w : mesh->w_info.wells)
+      {
+         
+         real absQsum = 0.;
+         real Qsum = 0.;
+         real messum = 0.;
+         for (int i = 0; i < w.bound_num.size(); i++)
+         {
+            if (abs(mesh->bounds2[w.bound_num[i]]->value) < 1e-12) continue;
+            int f = mesh->bounds2[w.bound_num[i]]->face_num;
+            real mes = 0.;
+            absQsum += abs(Q_av[f]);
+            Qsum += Q_av[f];
+            {
+               real a,b,c,d,p,uv;
+               knot* knots[4]{};
+               for (int k = 0; k < 4; k++)
+                  knots[k] = mesh->knots[mesh->faces[f]->knots_num[k]];
+               a = sqrt(pow(knots[0]->x - knots[1]->x, 2) + 
+                        pow(knots[0]->y - knots[1]->y, 2) + 
+                        pow(knots[0]->z - knots[1]->z, 2));
+               b = sqrt(pow(knots[0]->x - knots[2]->x, 2) +
+                        pow(knots[0]->y - knots[2]->y, 2) +
+                        pow(knots[0]->z - knots[2]->z, 2));
+               c = sqrt(pow(knots[3]->x - knots[1]->x, 2) +
+                        pow(knots[3]->y - knots[1]->y, 2) +
+                        pow(knots[3]->z - knots[1]->z, 2));
+               d = sqrt(pow(knots[2]->x - knots[3]->x, 2) +
+                        pow(knots[2]->y - knots[3]->y, 2) +
+                        pow(knots[2]->z - knots[3]->z, 2));
+               uv = sqrt(pow(knots[0]->x - knots[3]->x, 2) +
+                         pow(knots[0]->y - knots[3]->y, 2) +
+                         pow(knots[0]->z - knots[3]->z, 2))*
+                    sqrt(pow(knots[2]->x - knots[1]->x, 2) +
+                         pow(knots[2]->y - knots[1]->y, 2) +
+                         pow(knots[2]->z - knots[1]->z, 2));
+               p = (a + b + c + d)/2.;
+               mes = sqrt((p - a)*(p - b)*(p - c)*(p - d) - (a*c + b*d + uv)*(a*c + b*d - uv)/4.);
+            }
+            messum += mes;
+         }
+         messum *= w.intake / 86400.;
+         for (int i = 0; i < w.bound_num.size(); i++)
+            Q_av[mesh->bounds2[w.bound_num[i]]->face_num] += 
+               (messum - Qsum) * abs(Q_av[mesh->bounds2[w.bound_num[i]]->face_num]) / absQsum;
+      }
+   }
+
    void Streams::AssembleMatrix()
    {
       // A[i][j] = b_e * Sg[e][i] * Sg[e][j], (i,j) <- hexa.faces_num
@@ -212,20 +265,19 @@ namespace streams
       }
 
       for (int i = 0; i < B->dim; i++)
-         B->di[i] += alpha[i];// + 2.;
-         //B->di[i] = alpha[i] + 2.;
+         B->di[i] += alpha[i];
 
       // fixate knowns
       for (auto cond : mesh->bounds2)
       {
-         B->di[cond->face_num] = 1.;//cond->value;
-         Q[cond->face_num] = cond->value;
+         if (abs(cond->value) < 1e-12) 
+            continue;
+         B->di[cond->face_num] = 1.;
          for (int j = B->ig[cond->face_num]; j < B->ig[cond->face_num + 1]; j++)
             B->l[j] = 0.;
          for (int j = 0; j < B->ig[B->dim]; j++)
             if (B->jg[j] == cond->face_num)
               B->u[j] = 0.;
-         //MatSymmetrisation(B, d, cond->face_num);
       }
    }
 
@@ -239,31 +291,33 @@ namespace streams
          auto& el = mesh->hexas[e];
          real sumQ = 0.;
          for (int i = 0; i < 6; i++)
-            sumQ += el->faces_sign[i] * Q[el->faces_num[i]];
+            sumQ += el->faces_sign[i] * Q_av[el->faces_num[i]];
          for (int i = 0; i < 6; i++)
             d[el->faces_num[i]] -= beta[e] * el->faces_sign[i] * sumQ; //d_local[i];
       }
 
       for (auto cond : mesh->bounds2)
-         d[cond->face_num] = 0.;
+         if (abs(cond->value) > 1e-12) 
+            d[cond->face_num] = 0.;
    }
 
    void Streams::SetAlpha()
    {
       real max_flow = 0.;
       for (int i = 0; i < B->dim; i++)
-         if (abs(Q[i]) > max_flow)
-            max_flow = abs(Q[i]);
+         if (abs(Q_av[i]) > max_flow)
+            max_flow = abs(Q_av[i]);
       //for (int i = 0; i < B->dim; i++)
-      //   alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q[i]));
+      //   alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q_av[i]));
       for (int e = 0; e < mesh->hexas.size(); e++)
       {
          auto& el = mesh->hexas[e];
          real disbalance = 0.;
          for (int f = 0; f < 6; f++)
-            disbalance += el->faces_sign[f] * Q[el->faces_num[f]];
+            disbalance += el->faces_sign[f] * Q_av[el->faces_num[f]];
          for (int i = 0; i < 6; i++)
-            alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-9);
+            //if (mesh->faces[el->faces_num[i]]->hexa_nums.size() > 1) 
+               alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-10);
       }
       for (int f = 0; f < mesh->faces.size(); f++)
          alpha[f] /= 2.;
@@ -276,38 +330,59 @@ namespace streams
 
       real max_flow = 0.;
       for (int i = 0; i < B->dim; i++)
-         max_flow = abs(Q[i]) < max_flow ? max_flow : abs(Q[i]);
+         max_flow = abs(Q_av[i]) < max_flow ? max_flow : abs(Q_av[i]);
       bool isBalanced = true;
       real dissum = 0.;
+      int count = 0;
       for (int e = 0; e < mesh->hexas.size(); e++)
       {
          auto& el = mesh->hexas[e];
-         real disbsum = 0.;
          real sum = 0.;
          for (int f = 0; f < 6; f++)
-            sum += el->faces_sign[f] * (Q[el->faces_num[f]] + dQ[el->faces_num[f]]);
-         for (int f = 0; f < 6; f++)
-            disbsum += el->faces_sign[f] * (Q[el->faces_num[f]]);
+            sum += el->faces_sign[f] * (Q_av[el->faces_num[f]] + dQ[el->faces_num[f]]);
          if (abs(sum) / max_flow > eps)
          {
-            beta[e] += 1./abs(sum);
+            beta[e] += beta[e]*abs(sum)/eps;
             isBalanced = false;
+            count++;
          }
          dissum += abs(sum);
       }
-      std::cout << "\t----Total Disbalance: " << abs(dissum) << ", Relative disbalance: " << abs(dissum) / max_flow << '\n';
+      int size = mesh->hexas.size();
+      std::cout << "\t----Total Disbalance: " << abs(dissum) / mesh->hexas.size() 
+                << ", Relative disbalance: " << abs(dissum) / max_flow / mesh->hexas.size() 
+                << "\n\tNum of disbalanced cells " << count << "/" << size << '\n';
 
       return !isBalanced;
    }
 
-   void Streams::OutputStreams(std::ofstream &outfull, std::ofstream& outone, int face_num_to_out)
+   void Streams::OutputStreams(std::ofstream& outfull, std::ofstream& outone, std::ofstream& outdisbalance, int face_num_to_out)
    {
+      outfull << std::scientific;
+      outone << std::scientific;
+      outdisbalance << std::scientific;
       for (int i = 0; i < Q.size(); i++)
       {
          outfull << i << " " << Q_av[i] << " " << Q[i] << "\n";
          if (i == face_num_to_out)
             outone << i << " " << Q_av[i] << " " << Q[i] << "\n";
       }
+      real av_dis = 0.;
+      real av_dis_bal = 0.;
+
+      for (int e = 0; e < mesh->hexas.size(); e++)
+      {
+         auto& el = mesh->hexas[e];
+         real sum = 0.;
+         real dissum = 0.;
+         for (int f = 0; f < 6; f++){
+            sum += el->faces_sign[f] * Q[el->faces_num[f]];
+            dissum += el->faces_sign[f] * Q_av[el->faces_num[f]];}
+         av_dis_bal += abs(sum);
+         av_dis += abs(dissum);
+         outdisbalance << e << " " << abs(dissum) << " " << abs(sum) << "\n";
+      }
+      outdisbalance << av_dis / mesh->hexas.size() << " " << av_dis_bal / mesh->hexas.size();
    }
 
    real Streams::Integrate2D(const std::function<real(real, real, int, int, int, int)> f, int face_num, int e, int xyz, int opposite)

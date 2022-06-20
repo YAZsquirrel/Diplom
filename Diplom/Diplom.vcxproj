@@ -153,10 +153,12 @@
     <ClInclude Include="Filtration.h" />
     <ClInclude Include="GridMaker.h" />
     <ClInclude Include="Streams.h" />
+    <ClInclude Include="super_output.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="EnvParams.txt" />
     <Text Include="FirstBounds.txt" />
+    <Text Include="HexaDisbalances.txt" />
     <Text Include="Hexahedrons.txt" />
     <Text Include="Knots.txt" />
     <Text Include="FiltrParams.txt" />
@@ -164,7 +166,7 @@
     <Text Include="Result.txt" />
     <Text Include="ResultZ.txt" />
     <Text Include="SecondBounds.txt" />
-    <Text Include="Stream1Resultt.txt" />
+    <Text Include="Stream1Result.txt" />
     <Text Include="StreamsResult.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
