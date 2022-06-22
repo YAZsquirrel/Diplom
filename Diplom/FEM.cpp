@@ -253,20 +253,20 @@ void FEM::AddFirstBounds()
    {
       for (int i = 0; i < 4; i++)
       {
-         A->di[cond->knots_num[i]] = 1.;//e10;
+         A->di[cond->knots_num[i]] = 1.;
          for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
             A->l[j] = 0.;
          for (int j = 0; j < A->ig[num_of_knots]; j++)
             if (A->jg[j] == cond->knots_num[i])
                A->u[j] = 0.;
+         b[cond->knots_num[i]] = cond->value;
+         //MatSymmetrisation(A, b, cond->knots_num[i]);
          #ifdef DEBUG1
          //b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);//cond->value;// ;
          b[cond->knots_num[i]] = ug(mesh->knots[cond->knots_num[i]]);
          #else
          //b[cond->knots_num[i]] += 1e10 * cond->value;
-         b[cond->knots_num[i]] = cond->value;
          #endif
-         //MatSymmetrisation(A, b, cond->knots_num[i]);
       }
    }
 #ifdef DEBUG1
@@ -389,11 +389,14 @@ void FEM::CreateSLAE()
       Createb(hexa);
 #endif // DEBUG1
    }
-#ifdef DEBUG
    WriteMatrix(A);
+#ifdef DEBUG
+   std::vector<real> vec1(A->dim, 1);
+   std::vector<real> vec2(A->dim, 1);
+   MatxVec(vec2, A, vec1);
 #endif // DEBUG
 #ifndef DEBUG1
-   AddSecondBounds();
+   //AddSecondBounds();
 #endif
    AddFirstBounds();
 }
@@ -435,9 +438,6 @@ void FEM::CreateG(hexahedron* hexa)
       for (int j = 0; j < 8; j++)
          localG[i][j] = hexa->lam * Integrate(Gij, i, j, hexa->knots_num);
 #endif // DEBUG
-
-
-
 }
 
 void FEM::Createb(hexahedron* hexa) 

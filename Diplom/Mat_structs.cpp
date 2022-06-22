@@ -1,88 +1,50 @@
 #include "Mat_structs.h"
-
+#include <set>
+#include <array>
 namespace mats
 {
    Matrix* MakeSparseFormat(int localsize, int elemsize, int FEsize, bool isknots, mesh_comps::Mesh* mesh)
    {
       const int N = localsize;
-      int* list1, * list2;
-      int* listbeg = new int[elemsize];
-
-      for (int i = 0; i < elemsize; i++)
-         listbeg[i] = -1;
-
-      list1 = new int[elemsize * elemsize]{};
-      list2 = new int[elemsize * elemsize]{};
-      int listsize = -1, iaddr, ind1, ind2, k;
-
-      for (int iel = 0; iel < FEsize; iel++) // 
-      {
-         for (int i = 0; i < N; i++) // 
-         {
-            k = isknots ? mesh->hexas[iel]->knots_num[i] : mesh->hexas[iel]->faces_num[i]; //
-            for (int j = i + 1; j < N; j++) // need to set N = ?
-            {
-               ind1 = k;
-               ind2 = isknots ? mesh->hexas[iel]->knots_num[j] : mesh->hexas[iel]->faces_num[j];  //
-               if (ind2 < ind1) //
-               {
-                  ind1 = ind2;
-                  ind2 = k;
-               }
-               iaddr = listbeg[ind2];
-               if (iaddr == -1) // 
-               {
-                  listsize++;
-                  listbeg[ind2] = listsize;
-                  list1[listsize] = ind1;
-                  list2[listsize] = -1;
-               }
-               else // 
-               {
-                  while (list1[iaddr] < ind1 && list2[iaddr] >= 0)
-                     iaddr = list2[iaddr];
-                  if (list1[iaddr] > ind1)  // 
-                  {                         // 
-                     listsize++;
-                     list1[listsize] = list1[iaddr];
-                     list2[listsize] = list2[iaddr];
-                     list1[iaddr] = ind1;
-                     list2[iaddr] = listsize;
-                  }
-                  else if (list1[iaddr] < ind1) // 
-                  {
-                     listsize++;
-                     list2[iaddr] = listsize;
-                     list1[listsize] = ind1;
-                     list2[listsize] = -1;
-                  }
-               }
-            }
-         }
-      }
+      // set connection table
+      std::vector<std::set<int>> map;
+      map.resize(elemsize);
+      for (auto hexa : mesh->hexas)      
+         for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+               if (isknots) {
+                  if (hexa->knots_num[i] > hexa->knots_num[j])
+                     map[hexa->knots_num[i]].insert(hexa->knots_num[j]); }
+               else {
+                  if (hexa->faces_num[i] > hexa->faces_num[j])
+                     map[hexa->faces_num[i]].insert(hexa->faces_num[j]); }
 
       Matrix* M = new Matrix;
       M->dim = elemsize;
       M->ig.resize(elemsize + 1, 0);
-      M->jg.resize(listsize + 1, 0);  // +1???
 
       for (int i = 0; i < elemsize; i++)
+         M->ig[i + 1] = M->ig[i] + map[i].size();
+      M->jg.resize(M->ig[elemsize], 0);
+      for (int i = 0; i < map.size(); i++)
       {
-         M->ig[i + 1] = M->ig[i];
-
-         for (iaddr = listbeg[i]; iaddr != -1; )
-         {
-            M->jg[M->ig[i + 1]] = list1[iaddr];
-            M->ig[i + 1]++;
-            iaddr = list2[iaddr];
-         }
+         std::vector<int> jind;
+         jind.reserve(map[i].size());
+         std::copy(map[i].begin(), map[i].end(), std::back_inserter(jind));
+         for (int j = 0; j < jind.size(); j++)
+            M->jg[M->ig[i] + j] = jind[j];
       }
-      delete[] listbeg;
-      delete[] list1;
-      delete[] list2;
 
-      M->l.resize(listsize + 1, 0.);
-      M->u.resize(listsize + 1, 0.);
+      //std::ofstream debugout("igjg.txt");
+      //for (size_t i = 0; i < M->ig.size(); i++)
+      //   debugout << M->ig[i] << '\n';
+      //debugout << '\n';
+      //for (size_t i = 0; i < M->jg.size(); i++)
+      //   debugout << M->jg[i] << '\n';
+      //debugout.close();
+
+      M->l.resize(M->ig[elemsize], 0.);
+      M->u.resize(M->ig[elemsize], 0.);
       M->di.resize(elemsize, 0.);
       return M;
 
@@ -147,7 +109,7 @@ namespace mats
       ff.resize(M->dim);
 
       
-      real res, alpha, beta, skp, eps = 1e-17;
+      real res, alpha, beta, skp, eps = 1e-14;
       int i, k;
       //x = q;
       

@@ -316,7 +316,7 @@ namespace streams
          for (int f = 0; f < 6; f++)
             disbalance += el->faces_sign[f] * Q_av[el->faces_num[f]];
          for (int i = 0; i < 6; i++)
-            //if (mesh->faces[el->faces_num[i]]->hexa_nums.size() > 1) 
+            if (mesh->faces[el->faces_num[i]]->hexa_nums.size() > 1) 
                alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-10);
       }
       for (int f = 0; f < mesh->faces.size(); f++)
@@ -340,6 +340,9 @@ namespace streams
          real sum = 0.;
          for (int f = 0; f < 6; f++)
             sum += el->faces_sign[f] * (Q_av[el->faces_num[f]] + dQ[el->faces_num[f]]);
+         //real maxQe = 0.;
+         //for (int i = 0; i < 6; i++)
+         //   maxQe = std::max(maxQe, abs(Q_av[el->faces_num[i]] + dQ[el->faces_num[i]]));
          if (abs(sum) / max_flow > eps)
          {
             beta[e] += beta[e]*abs(sum)/eps;

@@ -34,6 +34,7 @@ namespace mesh_comps
             w_info.wells.push_back( well( x, y, well_rad, h1, h2, v ) );
          }
          fparam >> w_info.conc_rad >> w_info.rad_knots >> w_info.conc;
+         w_info.rad_knots = std::max(1, w_info.rad_knots);
          //w_info.conc_rad = std::max(std::ceil(w_info.conc_rad / (0.9 * step.x)) * step.x , std::ceil(w_info.conc_rad / (0.9 * step.y)) * step.y);
       }
 
@@ -60,14 +61,14 @@ namespace mesh_comps
          {
             short match = 0;
             int gf = 0;
-            for (gf = 0; gf < faces.size() && match < 3; gf++)
+            for (gf = faces.size() - 1; gf >= 0 && match < 3; gf--)
             {
                match = 0;
                for (int i = 0; i < 4; i++)
                   for (int j = 0; j < 4; j++)
                      if (faces[gf]->knots_num[i] == hexas[e]->knots_num[lfn[f][j]]) match++;
             }
-            gf--;
+            gf++;
             if (match < 3)
             {
                face* _face;

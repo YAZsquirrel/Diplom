@@ -88,93 +88,79 @@ namespace filtr {
          real hh1 = mesh->knots[hexa->knots_num[4]]->z; // Верхняя грань
          real hh2 = mesh->knots[hexa->knots_num[0]]->z; // Нижняя грань
          real hh = hh1 - hh2;
-         for (int j = 0; j < phases.size(); j++)
-         {	
-            if (abs(hh1 - phases[j].h) < 1e-12)
-            {
-               if (j != phases.size() - 1) // 1-2
-               {
-                  real phh = phases[j].h - phases[j + 1].h;
 
-                  if (abs(hh2 - phases[j + 1].h) < 1e-12 || hh2 > phases[j + 1].h) // 2
-                     hexa->Sm[j] = 1.;
-                  else if (hh2 < phases[j + 1].h) // 1
+         if (phases.size() == 1)
+         {
+            hexa->phases_num.push_back(0);
+            hexa->Sm[0] = 1.;
+         }
+         else
+            for (int j = 0; j < phases.size(); j++)
+            {	
+               if (abs(hh1 - phases[j].h) < 1e-12)
+               {
+                  if (j != phases.size() - 1) // 1-2
                   {
-                     hexa->Sm[j] = hh / phh;
-                     hexa->Sm[j + 1] = 1. - hh / phh;
-                     hexa->phases_num.push_back(j + 1);
-                  }
-               }
-               else
-                  hexa->Sm[j] = 1.;		// 3 (последний слой)
-               hexa->phases_num.push_back(j);
-            }
-            else if (hh1 < phases[j].h)
-            {
-               if (j != phases.size() - 1)	// 2 (посл. слой)
-               {
-                  hexa->Sm[j] = 1.;			
-                  hexa->phases_num.push_back(j);
-               }
-               else
-               {
-                  real phh1 = phases[j].h - phases[j + 1].h;
+                     real phh = phases[j].h - phases[j + 1].h;
 
-                  if (abs(hh2 - phases[j + 1].h) < 1e-12 || hh2 > phases[j + 1].h) // 2-6
-                  {
-                     hexa->Sm[j] = 1.;
-                     hexa->phases_num.push_back(j);
-                  }
-                  else if (hh2 < phases[j + 1].h) // 4-5
-                  {
-                     if (j == phases.size() - 2) // 4
+                     if (abs(hh2 - phases[j + 1].h) < 1e-12 || hh2 > phases[j + 1].h) // 2
+                        hexa->Sm[j] = 1.;
+                     else if (hh2 < phases[j + 1].h) // 1
                      {
-                        hexa->Sm[j] = hh / (hh1 - phases[j + 1].h);
-                        hexa->Sm[j + 1] = 1. - hexa->Sm[j];
-                        hexa->phases_num.push_back(j);
+                        hexa->Sm[j] = hh / phh;
+                        hexa->Sm[j + 1] = 1. - hh / phh;
                         hexa->phases_num.push_back(j + 1);
                      }
-                     else // 4-5
+                  }
+                  else
+                     hexa->Sm[j] = 1.;		// 3 (последний слой)
+                  hexa->phases_num.push_back(j);
+               }
+               else if (hh1 < phases[j].h)
+               {
+                  if (j != phases.size() - 1)	// 2 (посл. слой)
+                  {
+                     hexa->Sm[j] = 1.;			
+                     hexa->phases_num.push_back(j);
+                  }
+                  else
+                  {
+                     real phh1 = phases[j].h - phases[j + 1].h;
+
+                     if (abs(hh2 - phases[j + 1].h) < 1e-12 || hh2 > phases[j + 1].h) // 2-6
                      {
-                        real phh2 = phases[j + 1].h - phases[j + 2].h;
-                        if (hh2 > phases[j + 2].h) // 4
+                        hexa->Sm[j] = 1.;
+                        hexa->phases_num.push_back(j);
+                     }
+                     else if (hh2 < phases[j + 1].h) // 4-5
+                     {
+                        if (j == phases.size() - 2) // 4
                         {
                            hexa->Sm[j] = hh / (hh1 - phases[j + 1].h);
                            hexa->Sm[j + 1] = 1. - hexa->Sm[j];
-                           hexa->phases_num.push_back(j + 1);
                            hexa->phases_num.push_back(j);
-                        }
-                        else if (abs(hh2 - phases[j + 2].h) < 1e-12)
-                        {
-                           hexa->Sm[j] = 1. - hh / phh2;
-                           hexa->Sm[j + 1] = hh / phh2;
                            hexa->phases_num.push_back(j + 1);
-                           hexa->phases_num.push_back(j);
                         }
-                        else if (hh2 < phases[j + 2].h) // 5
+                        else // 4-5
                         {
-                           if (j == phases.size() - 3)
+                           real phh2 = phases[j + 1].h - phases[j + 2].h;
+                           if (hh2 > phases[j + 2].h) // 4
                            {
                               hexa->Sm[j] = hh / (hh1 - phases[j + 1].h);
-                              hexa->Sm[j + 1] = hh / phh2;
-                              hexa->Sm[j + 2] = 1. - hexa->Sm[j] - hexa->Sm[j + 1];
+                              hexa->Sm[j + 1] = 1. - hexa->Sm[j];
                               hexa->phases_num.push_back(j + 1);
                               hexa->phases_num.push_back(j);
-                              hexa->phases_num.push_back(j + 2);
                            }
-                           else
+                           else if (abs(hh2 - phases[j + 2].h) < 1e-12)
                            {
-                              if (abs(hh2 - phases[j + 3].h) < 1e-12)
-                              {
-                                 real phh3 = phases[j + 2].h - phases[j + 3].h;
-                                 hexa->Sm[j + 1] = hh / phh2;
-                                 hexa->Sm[j + 2] = hh / phh3;
-                                 hexa->Sm[j] = 1. - hexa->Sm[j + 1] - hexa->Sm[j + 2];
-                                 hexa->phases_num.push_back(j + 1);
-                                 hexa->phases_num.push_back(j);
-                                 hexa->phases_num.push_back(j + 2);
-                              }
-                              else if(hh2 < phases[j + 3].h)
+                              hexa->Sm[j] = 1. - hh / phh2;
+                              hexa->Sm[j + 1] = hh / phh2;
+                              hexa->phases_num.push_back(j + 1);
+                              hexa->phases_num.push_back(j);
+                           }
+                           else if (hh2 < phases[j + 2].h) // 5
+                           {
+                              if (j == phases.size() - 3)
                               {
                                  hexa->Sm[j] = hh / (hh1 - phases[j + 1].h);
                                  hexa->Sm[j + 1] = hh / phh2;
@@ -183,14 +169,35 @@ namespace filtr {
                                  hexa->phases_num.push_back(j);
                                  hexa->phases_num.push_back(j + 2);
                               }
-                              //else if ...
+                              else
+                              {
+                                 if (abs(hh2 - phases[j + 3].h) < 1e-12)
+                                 {
+                                    real phh3 = phases[j + 2].h - phases[j + 3].h;
+                                    hexa->Sm[j + 1] = hh / phh2;
+                                    hexa->Sm[j + 2] = hh / phh3;
+                                    hexa->Sm[j] = 1. - hexa->Sm[j + 1] - hexa->Sm[j + 2];
+                                    hexa->phases_num.push_back(j + 1);
+                                    hexa->phases_num.push_back(j);
+                                    hexa->phases_num.push_back(j + 2);
+                                 }
+                                 else if(hh2 < phases[j + 3].h)
+                                 {
+                                    hexa->Sm[j] = hh / (hh1 - phases[j + 1].h);
+                                    hexa->Sm[j + 1] = hh / phh2;
+                                    hexa->Sm[j + 2] = 1. - hexa->Sm[j] - hexa->Sm[j + 1];
+                                    hexa->phases_num.push_back(j + 1);
+                                    hexa->phases_num.push_back(j);
+                                    hexa->phases_num.push_back(j + 2);
+                                 }
+                                 //else if ...
+                              }
                            }
                         }
                      }
-                  }
-               }					
+                  }					
+               }
             }
-         }
       }
 
       for (auto h : mesh->hexas)
