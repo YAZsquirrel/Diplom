@@ -256,17 +256,18 @@ void FEM::AddFirstBounds()
          A->di[cond->knots_num[i]] = 1.;
          for (int j = A->ig[cond->knots_num[i]]; j < A->ig[cond->knots_num[i] + 1]; j++)
             A->l[j] = 0.;
-         for (int j = 0; j < A->ig[num_of_knots]; j++)
-            if (A->jg[j] == cond->knots_num[i])
-               A->u[j] = 0.;
+         for (int ii = 0; ii < A->dim; ii++)                // идем по столбцам
+            for (int j = A->ig[ii]; j < A->ig[ii+1]; j++)   // идем элементам в столбце
+               if (A->jg[j] == cond->knots_num[i])          // в нужной строке элемент?
+                  A->u[j] = 0.;
          b[cond->knots_num[i]] = cond->value;
-         //MatSymmetrisation(A, b, cond->knots_num[i]);
          #ifdef DEBUG1
          //b[cond->knots_num[i]] = 1e10 * ug(mesh->knots[cond->knots_num[i]]);//cond->value;// ;
          b[cond->knots_num[i]] = ug(mesh->knots[cond->knots_num[i]]);
          #else
          //b[cond->knots_num[i]] += 1e10 * cond->value;
          #endif
+         MatSymmetrisation(A, b, cond->knots_num[i]);
       }
    }
 #ifdef DEBUG1
@@ -356,6 +357,13 @@ void FEM::AddSecondBounds()
       std::vector<real> bnormal = {xn, yn, zn};
       
       real Sfactor = abs(scalar(bnormal, planeNormal));
+      {
+         knot* knots[4];
+         for (int i = 0; i < 4; i++)
+            knots[i] = mesh->knots[mesh->faces[bound->face_num]->knots_num[i]];
+         Sfactor *= mesh->faces[bound->face_num]->GetArea(knots);
+      }
+
       a0 = (x[1] - x[0])*(y[2] - y[0]) - (y[1] - y[0])*(x[2] - x[0]);
       a1 = (x[1] - x[0])*(y[3] - y[2]) - (y[1] - y[0])*(x[3] - x[2]);
       a2 = (x[3] - x[1])*(y[2] - y[0]) - (y[3] - y[1])*(x[2] - x[0]);
@@ -389,14 +397,14 @@ void FEM::CreateSLAE()
       Createb(hexa);
 #endif // DEBUG1
    }
-   WriteMatrix(A);
 #ifdef DEBUG
    std::vector<real> vec1(A->dim, 1);
    std::vector<real> vec2(A->dim, 1);
    MatxVec(vec2, A, vec1);
+   WriteMatrix(A);
 #endif // DEBUG
 #ifndef DEBUG1
-   //AddSecondBounds();
+   AddSecondBounds();
 #endif
    AddFirstBounds();
 }

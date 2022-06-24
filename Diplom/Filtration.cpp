@@ -62,8 +62,9 @@ namespace filtr {
       fem->GetSolutionOnPlane(40);
       fem->GetSolutionOnPlane(20);
       fem->GetSolutionOnPlane(0);
-      str = new streams::Streams(mesh, fem->GetKnots());
       //return;
+
+      str = new streams::Streams(mesh, fem->GetKnots());
       str->FindStreams();
       std::ofstream outall("StreamsResult.txt");
       std::ofstream outone("Stream1Result.txt");

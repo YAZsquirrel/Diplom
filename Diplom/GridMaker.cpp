@@ -487,7 +487,6 @@ namespace mesh_comps
       //            << 0.0 << '\n';
       //}
 
-
       // add knots on upper plains 
       for (int k = 1; k < zn; k++)
       {

@@ -177,7 +177,7 @@ namespace streams
       for (auto b : mesh->bounds2)
          std::cout << Q_av[b->face_num] << "\n";
 #endif     
-      while (AdjustBeta(1e-10))
+      while (AdjustBeta(1e-9))
       {
          AssembleMatrix();
          AssembleRightPart();
@@ -205,33 +205,11 @@ namespace streams
             real mes = 0.;
             absQsum += abs(Q_av[f]);
             Qsum += Q_av[f];
-            {
-               real a,b,c,d,p,uv;
-               knot* knots[4]{};
-               for (int k = 0; k < 4; k++)
-                  knots[k] = mesh->knots[mesh->faces[f]->knots_num[k]];
-               a = sqrt(pow(knots[0]->x - knots[1]->x, 2) + 
-                        pow(knots[0]->y - knots[1]->y, 2) + 
-                        pow(knots[0]->z - knots[1]->z, 2));
-               b = sqrt(pow(knots[0]->x - knots[2]->x, 2) +
-                        pow(knots[0]->y - knots[2]->y, 2) +
-                        pow(knots[0]->z - knots[2]->z, 2));
-               c = sqrt(pow(knots[3]->x - knots[1]->x, 2) +
-                        pow(knots[3]->y - knots[1]->y, 2) +
-                        pow(knots[3]->z - knots[1]->z, 2));
-               d = sqrt(pow(knots[2]->x - knots[3]->x, 2) +
-                        pow(knots[2]->y - knots[3]->y, 2) +
-                        pow(knots[2]->z - knots[3]->z, 2));
-               uv = sqrt(pow(knots[0]->x - knots[3]->x, 2) +
-                         pow(knots[0]->y - knots[3]->y, 2) +
-                         pow(knots[0]->z - knots[3]->z, 2))*
-                    sqrt(pow(knots[2]->x - knots[1]->x, 2) +
-                         pow(knots[2]->y - knots[1]->y, 2) +
-                         pow(knots[2]->z - knots[1]->z, 2));
-               p = (a + b + c + d)/2.;
-               mes = sqrt((p - a)*(p - b)*(p - c)*(p - d) - (a*c + b*d + uv)*(a*c + b*d - uv)/4.);
-            }
-            messum += mes;
+            knot* knots[4];
+            for (int i = 0; i < 4; i++)
+               knots[i] = mesh->knots[mesh->faces[f]->knots_num[i]];
+
+            messum += mesh->faces[f]->GetArea(knots);
          }
          messum *= w.intake / 86400.;
          for (int i = 0; i < w.bound_num.size(); i++)
@@ -275,9 +253,12 @@ namespace streams
          B->di[cond->face_num] = 1.;
          for (int j = B->ig[cond->face_num]; j < B->ig[cond->face_num + 1]; j++)
             B->l[j] = 0.;
-         for (int j = 0; j < B->ig[B->dim]; j++)
-            if (B->jg[j] == cond->face_num)
-              B->u[j] = 0.;
+         for (int ii = 0; ii < B->dim; ii++)
+            for (int j = B->ig[ii]; j < B->ig[ii + 1]; j++)
+               if (B->jg[j] == cond->face_num)
+                  B->u[j] = 0.;
+         MatSymmetrisation(B, d, cond->face_num);
+
       }
    }
 
@@ -307,20 +288,20 @@ namespace streams
       for (int i = 0; i < B->dim; i++)
          if (abs(Q_av[i]) > max_flow)
             max_flow = abs(Q_av[i]);
-      //for (int i = 0; i < B->dim; i++)
-      //   alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q_av[i]));
-      for (int e = 0; e < mesh->hexas.size(); e++)
-      {
-         auto& el = mesh->hexas[e];
-         real disbalance = 0.;
-         for (int f = 0; f < 6; f++)
-            disbalance += el->faces_sign[f] * Q_av[el->faces_num[f]];
-         for (int i = 0; i < 6; i++)
-            if (mesh->faces[el->faces_num[i]]->hexa_nums.size() > 1) 
-               alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-10);
-      }
-      for (int f = 0; f < mesh->faces.size(); f++)
-         alpha[f] /= 2.;
+      for (int i = 0; i < B->dim; i++)
+         alpha[i] = 1. / std::max(1e-8 * max_flow, abs(Q_av[i]));
+      //for (int e = 0; e < mesh->hexas.size(); e++)
+      //{
+      //   auto& el = mesh->hexas[e];
+      //   real disbalance = 0.;
+      //   for (int f = 0; f < 6; f++)
+      //      disbalance += el->faces_sign[f] * Q_av[el->faces_num[f]];
+      //   for (int i = 0; i < 6; i++)
+      //      if (mesh->faces[el->faces_num[i]]->hexa_nums.size() > 1) 
+      //         alpha[el->faces_num[i]] += 1. / std::max(abs(disbalance), 1e-10);
+      //}
+      //for (int f = 0; f < mesh->faces.size(); f++)
+      //   alpha[f] /= 2.;
    }
 
    bool Streams::AdjustBeta(real eps)
@@ -345,7 +326,7 @@ namespace streams
          //   maxQe = std::max(maxQe, abs(Q_av[el->faces_num[i]] + dQ[el->faces_num[i]]));
          if (abs(sum) / max_flow > eps)
          {
-            beta[e] += beta[e]*abs(sum)/eps;
+            beta[e] += 1e12*abs(sum)/eps;
             isBalanced = false;
             count++;
          }
@@ -364,6 +345,10 @@ namespace streams
       outfull << std::scientific;
       outone << std::scientific;
       outdisbalance << std::scientific;
+
+      real max_flow = 0.;
+      for (int i = 0; i < B->dim; i++)
+         max_flow = abs(Q_av[i]) < max_flow ? max_flow : abs(Q_av[i]);
       for (int i = 0; i < Q.size(); i++)
       {
          outfull << i << " " << Q_av[i] << " " << Q[i] << "\n";
@@ -381,8 +366,8 @@ namespace streams
          for (int f = 0; f < 6; f++){
             sum += el->faces_sign[f] * Q[el->faces_num[f]];
             dissum += el->faces_sign[f] * Q_av[el->faces_num[f]];}
-         av_dis_bal += abs(sum);
-         av_dis += abs(dissum);
+         av_dis_bal += abs(sum) / max_flow;
+         av_dis += abs(dissum) / max_flow;
          outdisbalance << e << " " << abs(dissum) << " " << abs(sum) << "\n";
       }
       outdisbalance << av_dis / mesh->hexas.size() << " " << av_dis_bal / mesh->hexas.size();

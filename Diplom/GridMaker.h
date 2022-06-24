@@ -38,6 +38,29 @@ namespace mesh_comps
       std::vector<int> hexa_nums;
       int knots_num[4];
       knot normal;
+      real GetArea(knot* knots[4]){
+         real a, b, c, d, p, uv;
+         a = sqrt(pow(knots[0]->x - knots[1]->x, 2) +
+            pow(knots[0]->y - knots[1]->y, 2) +
+            pow(knots[0]->z - knots[1]->z, 2));
+         b = sqrt(pow(knots[0]->x - knots[2]->x, 2) +
+            pow(knots[0]->y - knots[2]->y, 2) +
+            pow(knots[0]->z - knots[2]->z, 2));
+         c = sqrt(pow(knots[3]->x - knots[1]->x, 2) +
+            pow(knots[3]->y - knots[1]->y, 2) +
+            pow(knots[3]->z - knots[1]->z, 2));
+         d = sqrt(pow(knots[2]->x - knots[3]->x, 2) +
+            pow(knots[2]->y - knots[3]->y, 2) +
+            pow(knots[2]->z - knots[3]->z, 2));
+         uv = sqrt(pow(knots[0]->x - knots[3]->x, 2) +
+            pow(knots[0]->y - knots[3]->y, 2) +
+            pow(knots[0]->z - knots[3]->z, 2)) *
+            sqrt(pow(knots[2]->x - knots[1]->x, 2) +
+               pow(knots[2]->y - knots[1]->y, 2) +
+               pow(knots[2]->z - knots[1]->z, 2));
+         p = (a + b + c + d) / 2.;
+         return sqrt((p - a) * (p - b) * (p - c) * (p - d) - (a * c + b * d + uv) * (a * c + b * d - uv) / 4.);
+      }
    };
 
    struct hexahedron

@@ -182,12 +182,12 @@ namespace mats
          M->u[j] = 0;
       }
 
-      for (int i = 0; i < M->dim; i++)
+      for (int n = 0; n < M->dim; n++)
       {
-         for (int j = M->ig[i]; j < M->ig[i + 1]; j++)
+         for (int j = M->ig[n]; j < M->ig[n + 1]; j++)
             if (M->jg[j] == i)
             {
-               b[i] -= b[i] * M->l[j];
+               b[n] -= b[i] * M->l[j];
                M->l[j] = 0.0;
             }
       }
