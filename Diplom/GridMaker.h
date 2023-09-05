@@ -16,10 +16,49 @@ namespace mesh_comps
    {
       //unsigned int knot_num;
       knot(real _x, real _y, real _z) : x(_x), y(_y), z(_z) {}
+      knot(real _x, real _y) : x(_x), y(_y), z(0) {}
       knot() : x(0.0), y(0.0), z(0.0) {}
-      ~knot(){}
       real x, y, z;
+      std::vector<int> edges_num;
+      knot& operator=(const knot& k) {
+         if (this == &k) return *this;
+         x = k.x;
+         y = k.y;
+         z = k.z;
+         return *this;
+      }
+
+      bool operator==(const knot* k) {
+
+         bool equal = (abs(k->x - x) < 1e-10 &&
+            abs(k->y - y) < 1e-10 &&
+            abs(k->z - z) < 1e-10) || *this == k;
+         return equal;
+      }
+
+      bool operator==(const knot& k) {
+         bool equal = (abs(k.x - x) < 1e-10 &&
+            abs(k.y - y) < 1e-10 &&
+            abs(k.z - z) < 1e-10);
+         return equal;
+      }
+
+      bool operator!=(const knot& k) {
+         bool equal = (abs(k.x - x) < 1e-10 &&
+            abs(k.y - y) < 1e-10 &&
+            abs(k.z - z) < 1e-10);
+         return !equal;
+      }
+
+      bool operator!=(const knot* k) {
+         bool equal = (abs(k->x - x) < 1e-10 &&
+            abs(k->y - y) < 1e-10 &&
+            abs(k->z - z) < 1e-10) || *this == k;
+
+         return !equal;
+      }
    };
+
 
    struct well
    {
@@ -38,32 +77,33 @@ namespace mesh_comps
       std::vector<int> hexa_nums;
       int knots_num[4];
       knot normal;
-      real GetArea(knot* knots[4]){
+
+      static real GetArea(knot knots[4]){
          real a, b, c, d, p, uv;
-         a = sqrt(pow(knots[0]->x - knots[1]->x, 2) +
-            pow(knots[0]->y - knots[1]->y, 2) +
-            pow(knots[0]->z - knots[1]->z, 2));
-         b = sqrt(pow(knots[0]->x - knots[2]->x, 2) +
-            pow(knots[0]->y - knots[2]->y, 2) +
-            pow(knots[0]->z - knots[2]->z, 2));
-         c = sqrt(pow(knots[3]->x - knots[1]->x, 2) +
-            pow(knots[3]->y - knots[1]->y, 2) +
-            pow(knots[3]->z - knots[1]->z, 2));
-         d = sqrt(pow(knots[2]->x - knots[3]->x, 2) +
-            pow(knots[2]->y - knots[3]->y, 2) +
-            pow(knots[2]->z - knots[3]->z, 2));
-         uv = sqrt(pow(knots[0]->x - knots[3]->x, 2) +
-            pow(knots[0]->y - knots[3]->y, 2) +
-            pow(knots[0]->z - knots[3]->z, 2)) *
-            sqrt(pow(knots[2]->x - knots[1]->x, 2) +
-               pow(knots[2]->y - knots[1]->y, 2) +
-               pow(knots[2]->z - knots[1]->z, 2));
+         a = sqrt(pow(knots[0].x - knots[1].x, 2) +
+            pow(knots[0].y - knots[1].y, 2) +
+            pow(knots[0].z - knots[1].z, 2));
+         b = sqrt(pow(knots[0].x - knots[2].x, 2) +
+            pow(knots[0].y - knots[2].y, 2) +
+            pow(knots[0].z - knots[2].z, 2));
+         c = sqrt(pow(knots[3].x - knots[1].x, 2) +
+            pow(knots[3].y - knots[1].y, 2) +
+            pow(knots[3].z - knots[1].z, 2));
+         d = sqrt(pow(knots[2].x - knots[3].x, 2) +
+            pow(knots[2].y - knots[3].y, 2) +
+            pow(knots[2].z - knots[3].z, 2));
+         uv = sqrt(pow(knots[0].x - knots[3].x, 2) +
+            pow(knots[0].y - knots[3].y, 2) +
+            pow(knots[0].z - knots[3].z, 2)) *
+            sqrt(pow(knots[2].x - knots[1].x, 2) +
+               pow(knots[2].y - knots[1].y, 2) +
+               pow(knots[2].z - knots[1].z, 2));
          p = (a + b + c + d) / 2.;
          return sqrt((p - a) * (p - b) * (p - c) * (p - d) - (a * c + b * d + uv) * (a * c + b * d - uv) / 4.);
       }
    };
 
-   struct hexahedron
+   struct element
    {
       int knots_num[8];
       int faces_sign[6];
@@ -99,12 +139,12 @@ namespace mesh_comps
       public: 
 	    Mesh();
 
-       std::vector<knot*> knots;
-       std::vector<hexahedron*> hexas;
-       std::vector<face*> faces;
+       std::vector<knot> knots;
+       std::vector<element> elems;
+       std::vector<face> faces;
        std::vector<std::set<int>> neighbors;
-       std::vector<bound*> bounds1;
-       std::vector<bound*> bounds2;
+       std::vector<bound> bounds1;
+       std::vector<bound> bounds2;
 
        void FindNeighborsAndFaces();
 

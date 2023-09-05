@@ -37,12 +37,6 @@
     <Filter Include="Additonal Data">
       <UniqueIdentifier>{53559942-cc0b-4de0-a5e1-a8bebffbabe0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Streams">
-      <UniqueIdentifier>{9ddcda69-3a44-48e9-8115-4fbcdf09c6e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Файлы заголовков\Streams">
-      <UniqueIdentifier>{593b9a02-0b7b-41d6-b084-601afd15e7b3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Output">
       <UniqueIdentifier>{8ebe523c-0d89-4203-a1de-8921845f916e}</UniqueIdentifier>
     </Filter>
@@ -63,9 +57,6 @@
     <ClCompile Include="GridMaker.cpp">
       <Filter>Исходные файлы\Grid</Filter>
     </ClCompile>
-    <ClCompile Include="Streams.cpp">
-      <Filter>Исходные файлы\Streams</Filter>
-    </ClCompile>
     <ClCompile Include="Mat_structs.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -80,13 +71,7 @@
     <ClInclude Include="GridMaker.h">
       <Filter>Файлы заголовков\Grid</Filter>
     </ClInclude>
-    <ClInclude Include="Streams.h">
-      <Filter>Файлы заголовков\Streams</Filter>
-    </ClInclude>
     <ClInclude Include="Mat_structs.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="super_output.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

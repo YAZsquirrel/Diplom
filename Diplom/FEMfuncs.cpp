@@ -6,11 +6,11 @@
 //	return real();
 //}
 namespace FEMns{
-real FEM::f(knot *point)
+real FEM::f(knot &knot)
 {
-	real x = point->x;
-	real y = point->y;
-	real z = point->z;
+	real x = knot.x;
+	real y = knot.y;
+	real z = knot.z;
 	//return 0;
 	switch (un)
 	{
@@ -25,22 +25,23 @@ real FEM::f(knot *point)
 	}
 }
 
-real FEM::ug(knot *point)
-{
-	real x = point->x;
-	real y = point->y;
-	real z = point->z;
+//real FEM::ug(knot &knot)
+//{
+//	real x = knot->x;
+//	real y = knot->y;
+//	real z = knot->z;
+//
+//	switch (un)
+//	{
+//	case 1: return 1;
+//	case 2: return x + y + z;
+//	case 3: return x;
+//	case 4: return x * x * x;
+//	case 5: return sin(x); // x^3 + y^3 + xy + 1
+//
+//	default:
+//		return 0;
+//	}
+//}
 
-	switch (un)
-	{
-	case 1: return 1;
-	case 2: return x + y + z;
-	case 3: return x;
-	case 4: return x * x * x;
-	case 5: return sin(x); // x^3 + y^3 + xy + 1
-
-	default:
-		return 0;
-	}
-}
 }

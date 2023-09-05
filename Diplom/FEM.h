@@ -6,8 +6,8 @@
 #include <iostream>
 #include <functional>
 #include <list>
-#include "Mat_structs.h"
-using namespace mats;
+#include "Math_structs.h"
+using namespace maths;
 //using namespace filtr;
 using namespace mesh_comps;
 namespace FEMns
@@ -15,8 +15,8 @@ namespace FEMns
 class FEM
 {
    private:
-   real f(knot *knot_);
-   real ug(knot *knot_);
+   real f(knot &knot_);
+   real ug(knot &knot_);
    int num_of_knots, num_of_FE, un;
 
    real localM2d[4][4];
@@ -43,16 +43,16 @@ class FEM
    void check_test();
    void AddFirstBounds();
    void AddSecondBounds();
-   void AddToA(hexahedron* hexa);
+   void AddToA(element &hexa);
    void CreateSLAE();
-   void CreateM(hexahedron *hexa);
-   void CreateG(hexahedron *hexa); 
-   void Createb(hexahedron* hexa);
+   void CreateM(element &hexa);
+   void CreateG(element &hexa); 
+   void Createb(element &hexa);
 
-   Matrix *A;
+   std::shared_ptr<Matrix> A;
    std::vector<real>b;
    std::vector<real> q; 
-   Mesh* mesh;
+   std::shared_ptr<Mesh> mesh;
    
    real Integrate(const std::function<real(real, real, real, int, int, int[8])> f, int i, int j, int knot_num[8]);
 
@@ -66,7 +66,7 @@ class FEM
    int GetHexasNum () {return num_of_FE;}
 
    std::vector<real>& GetKnots() { return q; };
-   FEM(Mesh* _mesh);
+   FEM(std::shared_ptr<Mesh> _mesh);
    void SolveElliptic();
    void GetSolutionOnPlane(real z);
    void Output(std::ofstream &out);

@@ -51,11 +51,11 @@ namespace mesh_comps
                     {2,3,6,7}};// y+  // низ, верх, перед, зад, права, лева  // если смотреть в (+x,0,0)
       std::vector<std::list<int>> arr;
       arr.resize(knots.size());
-      for (int e = 0; e < hexas.size(); e++)
+      for (int e = 0; e < elems.size(); e++)
          for(int i = 0; i < 8; i++)
-            arr[hexas[e]->knots_num[i]].push_back(e);
+            arr[elems[e].knots_num[i]].push_back(e);
 
-      for (int e = 0; e < hexas.size(); e++)
+      for (int e = 0; e < elems.size(); e++)
       {
          for (int f = 0; f < 6; f++)
          {
@@ -66,29 +66,29 @@ namespace mesh_comps
                match = 0;
                for (int i = 0; i < 4; i++)
                   for (int j = 0; j < 4; j++)
-                     if (faces[gf]->knots_num[i] == hexas[e]->knots_num[lfn[f][j]]) match++;
+                     if (faces[gf].knots_num[i] == elems[e].knots_num[lfn[f][j]]) match++;
             }
             gf++;
             if (match < 3)
             {
-               face* _face;
-               faces.push_back(_face = new face());
+               face _face;
+               faces.push_back(_face = face());
                for (int j = 0; j < 4; j++)
-                  _face->knots_num[j] = hexas[e]->knots_num[lfn[f][j]];  
-               _face->hexa_nums.push_back(e);
-               hexas[e]->faces_num.push_back(faces.size() - 1);
+                  _face.knots_num[j] = elems[e].knots_num[lfn[f][j]];  
+               _face.hexa_nums.push_back(e);
+               elems[e].faces_num.push_back(faces.size() - 1);
             }
             else
             {
                // уже в списке
-               faces[gf]->hexa_nums.push_back(e);
-               hexas[e]->faces_num.push_back(gf);
+               faces[gf].hexa_nums.push_back(e);
+               elems[e].faces_num.push_back(gf);
             }
          }
       }
 
-      neighbors.resize(hexas.size());
-      for (int e = 0; e < hexas.size(); e++)
+      neighbors.resize(elems.size());
+      for (int e = 0; e < elems.size(); e++)
       {
          for (int f = 0; f < 6; f++)
          {
@@ -98,11 +98,11 @@ namespace mesh_comps
             std::set<int> ems12;
             std::set<int> finalems;
       
-            for (auto es : arr[hexas[e]->knots_num[lfn[f][0]]])
+            for (auto es : arr[elems[e].knots_num[lfn[f][0]]])
                ems1.insert(es);
-            for (auto es : arr[hexas[e]->knots_num[lfn[f][1]]])
+            for (auto es : arr[elems[e].knots_num[lfn[f][1]]])
                ems2.insert(es);
-            for (auto es : arr[hexas[e]->knots_num[lfn[f][2]]])
+            for (auto es : arr[elems[e].knots_num[lfn[f][2]]])
                ems3.insert(es);
       
             std::set_intersection(ems1.begin(), ems1.end(),
@@ -180,7 +180,7 @@ namespace mesh_comps
                   {
                      if (is_prev_near_well && !wells_area_x_found[last_well_num])
                         wells_area_x_found[last_well_num] = true;
-                     knots.push_back(new knot(x, y, z));
+                     knots.push_back(knot(x, y, z));
                   }
                   else 
                   {
@@ -213,11 +213,11 @@ namespace mesh_comps
                inwell_inds.reserve(2 * (well_area_y + well_area_x) + 4);
 
                for (int kn = 0; kn < knots.size() && (x1 || y1) && 
-                        ( w->x + w_info.conc_rad + step.x > knots[kn]->x || w->y + w_info.conc_rad + step.y > knots[kn]->y); kn++)
+                        ( w->x + w_info.conc_rad + step.x > knots[kn].x || w->y + w_info.conc_rad + step.y > knots[kn].y); kn++)
                {
-                  if (knots[kn]->x > rx && knots[kn]->y > yu)
+                  if (knots[kn].x > rx && knots[kn].y > yu)
                      break;
-                  if (knots[kn]->x < rx && knots[kn]->x > lx && knots[kn]->y < yu && knots[kn]->y > yd)
+                  if (knots[kn].x < rx && knots[kn].x > lx && knots[kn].y < yu && knots[kn].y > yd)
                      inwell_inds.push_back(kn);
                }
                well_area_y = inwell_inds.size() / 2 - 2 - well_area_x;
@@ -252,15 +252,15 @@ namespace mesh_comps
                
                for (int iw = 0; iw < rays; iw++)
                {
-                  real xiw = knots[sorted_inds->at(iw)]->x - w->x, yiw = knots[sorted_inds->at(iw)]->y - w->y;
+                  real xiw = knots[sorted_inds->at(iw)].x - w->x, yiw = knots[sorted_inds->at(iw)].y - w->y;
                   real len = sqrt(xiw * xiw + yiw * yiw);
                   xiw /= len; yiw /= len;
                   //xiw += w->x;  yiw += w->y;
 
-                  knots.push_back(new knot(xiw * w->radius + w->x, yiw * w->radius + w->y, z));
+                  knots.push_back(knot(xiw * w->radius + w->x, yiw * w->radius + w->y, z));
 
-                  real length = sqrt(pow(xiw * (w->radius/* - step.x*/) + w->x - knots[sorted_inds->at(iw)]->x, 2)
-                                   + pow(yiw * (w->radius/* - step.y*/) + w->y - knots[sorted_inds->at(iw)]->y, 2));
+                  real length = sqrt(pow(xiw * (w->radius/* - step.x*/) + w->x - knots[sorted_inds->at(iw)].x, 2)
+                                   + pow(yiw * (w->radius/* - step.y*/) + w->y - knots[sorted_inds->at(iw)].y, 2));
                   real stepr = length / w_info.rad_knots;
 
                   //for (float r = stepr, j = 1; j < num_of_knots_on_rad; r += stepr, j++)
@@ -269,7 +269,7 @@ namespace mesh_comps
                   //for (real r = w_info.conc != 1. ? length * (1. - w_info.conc) * w_info.conc : stepr,
                      rr = 1, b = r; rr < w_info.rad_knots; rr++)
                   {
-                     knots.push_back(new knot(xiw * (w->radius + r) + w->x, yiw * (w->radius + r) + w->y, z));
+                     knots.push_back(knot(xiw * (w->radius + r) + w->x, yiw * (w->radius + r) + w->y, z));
                      b *= w_info.conc; r += b;
                   }
                }
@@ -277,12 +277,12 @@ namespace mesh_comps
          }
          else
             for (int i = 0; i < plane_size; i++)
-               knots.push_back(new knot(knots[i]->x, knots[i]->y, z));
+               knots.push_back(knot(knots[i].x, knots[i].y, z));
       }
 
       fknots << knots.size() << '\n';
       for (int i = 0; i < knots.size(); i++)
-         fknots << knots[i]->x << " " << knots[i]->y << " " << knots[i]->z << '\n';
+         fknots << knots[i].x << " " << knots[i].y << " " << knots[i].z << '\n';
       fknots.close();
       if (well_start_indecies[0] < 0)
          well_start_indecies = new int[1]{ plane_size };
@@ -300,22 +300,22 @@ namespace mesh_comps
                     {0,1,4,5},
                     {3,2,7,6} };
 
-      for (auto el : hexas)
+      for (auto el : elems)
       {
          
          for (int j = 0; j < 6; j++)
          {
 
-            knot *k1 = knots[el->knots_num[lfn[j][0]]],
-                 *k2 = knots[el->knots_num[lfn[j][1]]],
-                 *k3 = knots[el->knots_num[lfn[j][2]]];
+            knot k1 = knots[el.knots_num[lfn[j][0]]],
+                 k2 = knots[el.knots_num[lfn[j][1]]],
+                 k3 = knots[el.knots_num[lfn[j][2]]];
             knot normal = knot();
-            real x1 = k2->x - k1->x;
-            real y1 = k2->y - k1->y;
-            real z1 = k2->z - k1->z;
-            real x2 = k3->x - k1->x;
-            real y2 = k3->y - k1->y;
-            real z2 = k3->z - k1->z;
+            real x1 = k2.x - k1.x;
+            real y1 = k2.y - k1.y;
+            real z1 = k2.z - k1.z;
+            real x2 = k3.x - k1.x;
+            real y2 = k3.y - k1.y;
+            real z2 = k3.z - k1.z;
             normal.x = y1 * z2 - z1 * y2;
             normal.y = z1 * x2 - x1 * z2;
             normal.z = x1 * y2 - y1 * x2;
@@ -326,8 +326,8 @@ namespace mesh_comps
             normal.y /= len;
             normal.z /= len;
 
-            auto f = faces[el->faces_num[j]];
-            el->faces_sign[j] = sign((normal.x) * (f->normal.x) + (normal.y) * (f->normal.y) + (normal.z) * (f->normal.z));
+            auto f = faces[el.faces_num[j]];
+            el.faces_sign[j] = sign((normal.x) * (f.normal.x) + (normal.y) * (f.normal.y) + (normal.z) * (f.normal.z));
          }
       }
    }
@@ -336,24 +336,24 @@ namespace mesh_comps
    {
       for (auto f : faces)
       {
-         knot *k1 = knots[f->knots_num[0]], 
-              *k2 = knots[f->knots_num[1]], 
-              *k3 = knots[f->knots_num[2]];
-         real x1 = k2->x - k1->x;
-         real y1 = k2->y - k1->y;
-         real z1 = k2->z - k1->z;
-         real x2 = k3->x - k1->x;
-         real y2 = k3->y - k1->y;
-         real z2 = k3->z - k1->z;
-         f->normal.x = y1*z2-z1*y2;
-         f->normal.y = z1*x2-x1*z2;
-         f->normal.z = x1*y2-y1*x2;
-         real len = sqrt((f->normal.x)*(f->normal.x)+
-                         (f->normal.y)*(f->normal.y)+
-                         (f->normal.z)*(f->normal.z));
-         f->normal.x /= len;
-         f->normal.y /= len;
-         f->normal.z /= len;
+         knot k1 = knots[f.knots_num[0]], 
+              k2 = knots[f.knots_num[1]], 
+              k3 = knots[f.knots_num[2]];
+         real x1 = k2.x - k1.x;
+         real y1 = k2.y - k1.y;
+         real z1 = k2.z - k1.z;
+         real x2 = k3.x - k1.x;
+         real y2 = k3.y - k1.y;
+         real z2 = k3.z - k1.z;
+         f.normal.x = y1*z2-z1*y2;
+         f.normal.y = z1*x2-x1*z2;
+         f.normal.z = x1*y2-y1*x2;
+         real len = sqrt((f.normal.x)*(f.normal.x)+
+                         (f.normal.y)*(f.normal.y)+
+                         (f.normal.z)*(f.normal.z));
+         f.normal.x /= len;
+         f.normal.y /= len;
+         f.normal.z /= len;
       }
 
    }
@@ -390,14 +390,14 @@ namespace mesh_comps
          bool found = false;
 
          face[0] = i;
-         if (abs(knots[i]->x - knots[i + 1]->x) <= (step.x + 1e-10) && abs(knots[i]->y - knots[i + 1]->y) < 1e-10)  // o -> o
+         if (abs(knots[i].x - knots[i + 1].x) <= (step.x + 1e-10) && abs(knots[i].y - knots[i + 1].y) < 1e-10)  // o -> o
          {
             face[1] = i + 1;
          for (int j = 0; j < well_inds[0]; j++)
-            if (abs(knots[i]->y - knots[j]->y) <= (step.y + 1e-10) && abs(knots[i]->x - knots[j]->x) < 1e-10 && i < j)
+            if (abs(knots[i].y - knots[j].y) <= (step.y + 1e-10) && abs(knots[i].x - knots[j].x) < 1e-10 && i < j)
             {  
                face[2] = j;
-               if (abs(knots[j]->x - knots[j + 1]->x) <= (step.x + 1e-10) && abs(knots[j]->y - knots[j + 1]->y) < 1e-10 && i < j)
+               if (abs(knots[j].x - knots[j + 1].x) <= (step.x + 1e-10) && abs(knots[j].y - knots[j + 1].y) < 1e-10 && i < j)
                {
                   face[3] = j + 1;
                   found = true;
@@ -455,11 +455,11 @@ namespace mesh_comps
       for (int i = 0; i < well_inds[0]; i++)
          for (int j = i + 1; j < well_inds[0]; j++)
          {
-            if ((abs(knots[i]->y - env_corner1.y) < 1e-10 || abs(knots[i]->y - env_corner2.y) < 1e-10) 
-                  && abs(knots[i]->x - knots[j]->x) < step.x + 1e-10 && abs(knots[i]->y - knots[j]->y) < 1e-10)
+            if ((abs(knots[i].y - env_corner1.y) < 1e-10 || abs(knots[i].y - env_corner2.y) < 1e-10) 
+                  && abs(knots[i].x - knots[j].x) < step.x + 1e-10 && abs(knots[i].y - knots[j].y) < 1e-10)
                {side_bound1.push_back(new int[2]{i, j}); continue;}
-            if ((abs(knots[i]->x - env_corner1.x) < 1e-10 || abs(knots[i]->x - env_corner2.x) < 1e-10)
-               && abs(knots[i]->y - knots[j]->y) < step.y + 1e-10 && abs(knots[i]->x - knots[j]->x) <  1e-10)
+            if ((abs(knots[i].x - env_corner1.x) < 1e-10 || abs(knots[i].x - env_corner2.x) < 1e-10)
+               && abs(knots[i].y - knots[j].y) < step.y + 1e-10 && abs(knots[i].x - knots[j].x) <  1e-10)
                {side_bound1.push_back(new int[2]{ i, j }); break;}
          }
 
